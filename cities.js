@@ -38,5 +38,20 @@ const cityCatalog = [
   { id: "sao-paulo", zone: "America/Sao_Paulo", lng: -46.6, lat: -23.5 },
   { id: "guadalcanal", zone: "Pacific/Guadalcanal", lng: 159.9, lat: -9.4 },
   { id: "sydney", zone: "Sydney", lng: 151.2, lat: -33.86 },
-  { id: "auckland", zone: "Pacific/Auckland", lng: 174.76, lat: -36.85 }
+  { id: "auckland", zone: "Pacific/Auckland", lng: 174.76, lat: -36.85 },
+  { id: "moscow", zone: "Europe/Moscow", lng: 37.62, lat: 55.75 },
+  { id: "atlanta", zone: "America/New_York", lng: -84.39, lat: 33.75 },
+  { id: "peru", zone: "America/Lima", lng: -77.03, lat: -12.04 },
+  { id: "philippines", zone: "Asia/Manila", lng: 120.98, lat: 14.59 },
+  { id: "hawaii", zone: "Pacific/Honolulu", lng: -157.86, lat: 21.31 },
+  { id: "iceland", zone: "Atlantic/Reykjavik", lng: -21.82, lat: 64.15 },
+  { id: "dublin", zone: "Europe/Dublin", lng: -6.26, lat: 53.35 },
+  { id: "mumbai", zone: "Asia/Kolkata", lng: 72.88, lat: 19.08 },
+  { id: "ho-chi-minh-city", zone: "Asia/Ho_Chi_Minh", lng: 106.63, lat: 10.82 },
+  { id: "melbourne", zone: "Australia/Melbourne", lng: 144.96, lat: -37.81 },
+  { id: "stockholm", zone: "Europe/Stockholm", lng: 18.07, lat: 59.33 },
+  { id: "santiago", zone: "America/Santiago", lng: -70.66, lat: -33.44 },
+  { id: "israel", zone: "Asia/Jerusalem", lng: 35.21, lat: 31.76 },
+  { id: "frankfurt", zone: "Europe/Berlin", lng: 8.68, lat: 50.11 },
+  { id: "lisbon", zone: "Europe/Lisbon", lng: -9.14, lat: 38.72 }
 ];
