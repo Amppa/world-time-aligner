@@ -107,7 +107,20 @@ const i18nCityNames = {
     "vancouver": "溫哥華",
     "mexico-city": "墨西哥城",
     "sao-paulo": "聖保羅",
-    "sydney": "雪梨"
+    "sydney": "雪梨",
+    "cape-town": "開普敦",
+    "tahiti": "大溪地",
+    "buenos-aires": "布宜諾斯艾利斯",
+    "auckland": "奧克蘭",
+    "jakarta": "雅加達",
+    "tunis": "突尼斯",
+    "berlin": "柏林",
+    "guadalcanal": "瓜達康納爾",
+    "kyiv": "基輔",
+    "lima": "利馬",
+    "cairo": "開羅",
+    "karachi": "喀拉蚩",
+    "lagos": "拉哥斯"
   },
   en: {
     "hong-kong": "Hong Kong",
@@ -136,6 +149,19 @@ const i18nCityNames = {
     "vancouver": "Vancouver",
     "mexico-city": "Mexico City",
     "sao-paulo": "São Paulo",
-    "sydney": "Sydney"
+    "sydney": "Sydney",
+    "cape-town": "Cape Town",
+    "tahiti": "Tahiti",
+    "buenos-aires": "Buenos Aires",
+    "auckland": "Auckland",
+    "jakarta": "Jakarta",
+    "tunis": "Tunis",
+    "berlin": "Berlin",
+    "guadalcanal": "Guadalcanal",
+    "kyiv": "Kyiv",
+    "lima": "Lima",
+    "cairo": "Cairo",
+    "karachi": "Karachi",
+    "lagos": "Lagos"
   }
 };
