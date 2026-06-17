@@ -236,9 +236,15 @@ function isValidZone(zone) {
 }
 
 function mapPosition(city) {
+  let cx = city.x;
+  let cy = city.y;
+  if (typeof city.lng === "number" && typeof city.lat === "number") {
+    cx = 0.2816 * city.lng + 46.2357;
+    cy = -0.5257 * city.lat + 63.3239;
+  }
   return {
-    x: clamp(50 + (city.x - 50) * mapSettings.widthScale + mapSettings.lngOffset, 0, 100),
-    y: clamp(50 + (city.y - 50) * mapSettings.heightScale + mapSettings.latOffset, 0, 100)
+    x: clamp(50 + (cx - 50) * mapSettings.widthScale + mapSettings.lngOffset, 0, 100),
+    y: clamp(50 + (cy - 50) * mapSettings.heightScale + mapSettings.latOffset, 0, 100)
   };
 }
 
@@ -316,7 +322,7 @@ function renderMap() {
 
 function formatSettingValue(key) {
   if (key.endsWith("Scale")) return mapSettings[key].toFixed(2);
-  return String(Math.round(mapSettings[key]));
+  return mapSettings[key].toFixed(1);
 }
 
 function renderSettingsControls() {
@@ -340,7 +346,7 @@ function updateMapSetting(key, value) {
   const next = clamp(Number(value), min, max);
   mapSettings = {
     ...mapSettings,
-    [key]: key.endsWith("Scale") ? Number(next.toFixed(2)) : Math.round(next)
+    [key]: key.endsWith("Scale") ? Number(next.toFixed(2)) : Number(next.toFixed(1))
   };
   saveMapSettings();
   renderSettingsControls();
