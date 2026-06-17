@@ -35,6 +35,7 @@ const i18nTranslations = {
     timePeriodSection: "4. 時段設定",
     resetTimePeriods: "預設時段顏色",
     resetCitiesBtn: "預設城市",
+    clearAllBtn: "清除全部",
     langZh: "繁體中文",
     langEn: "English"
   },
@@ -74,6 +75,7 @@ const i18nTranslations = {
     timePeriodSection: "4. Time Period Settings",
     resetTimePeriods: "Reset Time Period Colors",
     resetCitiesBtn: "Reset Cities",
+    clearAllBtn: "Clear All",
     langZh: "Traditional Chinese",
     langEn: "English"
   }

@@ -38,6 +38,7 @@ const DOM = {
   timelinePanel: document.querySelector(".timeline-panel"),
   nowText: document.querySelector("#nowText"),
   resetButton: document.querySelector("#resetButton"),
+  clearAllButton: document.querySelector("#clearAllButton"),
   settingsButton: document.querySelector("#settingsButton"),
   settingsPanel: document.querySelector("#settingsPanel"),
   resetMapButton: document.querySelector("#resetMapButton"),
@@ -367,12 +368,16 @@ const State = {
   },
 
   toggleCity(id) {
-    if (this.selectedIds.includes(id)) {
-      this.selectedIds = this.selectedIds.filter((item) => item !== id);
+    if (State.selectedIds.includes(id)) {
+      State.selectedIds = State.selectedIds.filter((item) => item !== id);
+      if (id.startsWith("custom-")) {
+        State.customCities = State.customCities.filter((city) => city.id !== id);
+        State.saveCustomCities();
+      }
     } else {
-      this.selectedIds = [...this.selectedIds.slice(-(CONFIG.maxCities - 1)), id];
+      State.selectedIds = [...State.selectedIds.slice(-(CONFIG.maxCities - 1)), id];
     }
-    this.saveSelection();
+    State.saveSelection();
     Renderer.render();
   }
 };
@@ -852,6 +857,14 @@ const AppController = {
     DOM.resetButton.addEventListener("click", () => {
       State.selectedIds = [...CONFIG.defaultSelection];
       State.saveSelection();
+      Renderer.render();
+    });
+
+    DOM.clearAllButton.addEventListener("click", () => {
+      State.selectedIds = [];
+      State.customCities = [];
+      State.saveSelection();
+      State.saveCustomCities();
       Renderer.render();
     });
 
