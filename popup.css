@@ -81,6 +81,10 @@ h1 {
   background: var(--panel);
   color: var(--accent-dark);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
 }
 
 .icon-button:hover {

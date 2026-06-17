@@ -3,8 +3,20 @@
   "name": "World Time Aligner",
   "description": "Compare the next 24 hours across selected cities with a shared hover guide.",
   "version": "1.0.0",
+  "icons": {
+    "16": "assets/world-time.png",
+    "32": "assets/world-time.png",
+    "48": "assets/world-time.png",
+    "128": "assets/world-time.png"
+  },
   "action": {
     "default_title": "World Time Aligner",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/world-time.png",
+      "32": "assets/world-time.png",
+      "48": "assets/world-time.png",
+      "128": "assets/world-time.png"
+    }
   }
 }
