@@ -489,3 +489,76 @@ h1 {
 .timeline-panel.is-hovering .hover-guide {
   opacity: 1;
 }
+
+.time-periods-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.time-periods-panel h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.time-periods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.period-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.period-label {
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 44px;
+}
+
+.period-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.period-range select {
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.period-colors {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-colors label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.period-colors input[type="color"] {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}

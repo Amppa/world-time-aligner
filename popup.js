@@ -60,6 +60,41 @@ const addCustomCityButton = document.querySelector("#addCustomCityButton");
 const customCityList = document.querySelector("#customCityList");
 const langSelect = document.querySelector("#langSelect");
 
+const defaultTimePeriods = [
+  { name: "period1", start: 8, end: 17, color: "#f4d06f", fontColor: "#4c3d08" },
+  { name: "period2", start: 18, end: 23, color: "#e59665", fontColor: "#3d2111" },
+  { name: "period3", start: 0, end: 7, color: "#4a3125", fontColor: "#ffffff" }
+];
+const timePeriodsKey = "worldTimeAlignerTimePeriods";
+let timePeriods = loadTimePeriods();
+
+function loadTimePeriods() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(timePeriodsKey));
+    if (Array.isArray(saved) && saved.length === 3) {
+      return saved;
+    }
+  } catch {}
+  return JSON.parse(JSON.stringify(defaultTimePeriods));
+}
+
+function saveTimePeriods() {
+  try {
+    localStorage.setItem(timePeriodsKey, JSON.stringify(timePeriods));
+  } catch {}
+}
+
+function getHourStyle(hour) {
+  const period = timePeriods.find((p) => {
+    if (p.start <= p.end) {
+      return hour >= p.start && hour <= p.end;
+    } else {
+      return hour >= p.start || hour <= p.end;
+    }
+  });
+  return period || timePeriods[2];
+}
+
 const languageKey = "worldTimeAlignerLanguage";
 let currentLang = loadLanguage();
 
@@ -345,8 +380,14 @@ function wireSettings() {
   resetMapButton.addEventListener("click", () => {
     mapSettings = { ...defaultMapSettings };
     saveMapSettings();
+
+    timePeriods = JSON.parse(JSON.stringify(defaultTimePeriods));
+    saveTimePeriods();
+    renderPeriodSettings();
+
     renderSettingsControls();
     renderMap();
+    render();
   });
 
   addCustomCityButton.addEventListener("click", () => {
@@ -439,10 +480,15 @@ function renderRows() {
     baseHours.forEach((date, index) => {
       const cityHour = hourInZone(date, city.zone);
       const cell = document.createElement("div");
-      cell.className = `hour-cell ${timeTone(cityHour)}${index === 0 ? " is-now" : ""}`;
+      cell.className = `hour-cell${index === 0 ? " is-now" : ""}`;
       cell.dataset.index = String(index);
       cell.textContent = String(cityHour).padStart(2, "0");
       cell.title = `${cityName} ${formatTime(date, city.zone)}`;
+
+      const styleInfo = getHourStyle(cityHour);
+      cell.style.backgroundColor = styleInfo.color;
+      cell.style.color = styleInfo.fontColor;
+
       hours.append(cell);
     });
 
@@ -540,6 +586,60 @@ function renderNowText() {
   nowText.textContent = `${getTranslation("localTimezone")} ${localZone} · ${formatTime(new Date(), localZone, { weekday: true })}`;
 }
 
+function populatePeriodSelectors() {
+  document.querySelectorAll(".period-start, .period-end").forEach((select) => {
+    select.innerHTML = "";
+    for (let h = 0; h < 24; h++) {
+      const opt = document.createElement("option");
+      opt.value = h;
+      opt.textContent = String(h).padStart(2, "0");
+      select.appendChild(opt);
+    }
+  });
+}
+
+function renderPeriodSettings() {
+  timePeriods.forEach((period, idx) => {
+    const row = document.querySelector(`.period-setting-row[data-period="${idx}"]`);
+    if (!row) return;
+    row.querySelector(".period-start").value = period.start;
+    row.querySelector(".period-end").value = period.end;
+    row.querySelector(".period-bg-color").value = period.color;
+    row.querySelector(".period-text-color").value = period.fontColor;
+  });
+}
+
+function wirePeriodSettings() {
+  timePeriods.forEach((period, idx) => {
+    const row = document.querySelector(`.period-setting-row[data-period="${idx}"]`);
+    if (!row) return;
+
+    row.querySelector(".period-start").addEventListener("change", (e) => {
+      timePeriods[idx].start = Number(e.target.value);
+      saveTimePeriods();
+      render();
+    });
+
+    row.querySelector(".period-end").addEventListener("change", (e) => {
+      timePeriods[idx].end = Number(e.target.value);
+      saveTimePeriods();
+      render();
+    });
+
+    row.querySelector(".period-bg-color").addEventListener("change", (e) => {
+      timePeriods[idx].color = e.target.value;
+      saveTimePeriods();
+      render();
+    });
+
+    row.querySelector(".period-text-color").addEventListener("change", (e) => {
+      timePeriods[idx].fontColor = e.target.value;
+      saveTimePeriods();
+      render();
+    });
+  });
+}
+
 function render() {
   makeBaseHours();
   renderNowText();
@@ -548,6 +648,7 @@ function render() {
   renderHeader();
   renderRows();
   renderCustomCityEditor();
+  renderPeriodSettings();
 }
 
 resetButton.addEventListener("click", () => {
@@ -568,6 +669,8 @@ langSelect.addEventListener("change", (e) => {
   render();
 });
 
+populatePeriodSelectors();
+wirePeriodSettings();
 applyLanguage();
 render();
 setInterval(render, 60 * 1000);

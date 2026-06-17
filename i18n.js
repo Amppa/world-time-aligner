@@ -22,7 +22,13 @@ const i18nTranslations = {
     language: "語言",
     localTimezone: "本機時區",
     removeCity: "移除 {name}",
-    selectCity: "選擇 {name}"
+    selectCity: "選擇 {name}",
+    timePeriodSettings: "時段色彩設定",
+    period1: "時段一",
+    period2: "時段二",
+    period3: "時段三",
+    bgColor: "背景",
+    textColor: "文字"
   },
   en: {
     title: "World Time",
@@ -47,7 +53,13 @@ const i18nTranslations = {
     language: "Language",
     localTimezone: "Local Timezone",
     removeCity: "Remove {name}",
-    selectCity: "Select {name}"
+    selectCity: "Select {name}",
+    timePeriodSettings: "Time Period Colors",
+    period1: "Period 1",
+    period2: "Period 2",
+    period3: "Period 3",
+    bgColor: "BG",
+    textColor: "Text"
   }
 };
 
