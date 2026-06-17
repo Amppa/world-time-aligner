@@ -21,9 +21,9 @@ const CONFIG = {
     mapYOffset: 30
   },
   defaultTimePeriods: [
-    { name: "period1", start: 8, end: 17, color: "#f4d06f", fontColor: "#4c3d08" },
-    { name: "period2", start: 18, end: 23, color: "#e59665", fontColor: "#3d2111" },
-    { name: "period3", start: 0, end: 7, color: "#4a3125", fontColor: "#ffffff" }
+    { name: "period1", start: 8, end: 17, color: "rgba(255, 231, 163, 1)", fontColor: "#000000ff" },
+    { name: "period2", start: 18, end: 23, color: "rgba(249, 190, 108, 1)", fontColor: "#000000ff" },
+    { name: "period3", start: 0, end: 7, color: "rgba(133, 108, 96, 1)", fontColor: "#ffffff" }
   ]
 };
 
@@ -422,7 +422,13 @@ const Renderer = {
 
   renderNowText() {
     const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    DOM.nowText.textContent = TimeUtils.formatTime(new Date(), localZone);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const dateStr = `${year}/${month}/${day}`;
+    const timeStr = TimeUtils.formatTime(now, localZone);
+    DOM.nowText.innerHTML = `<span class="now-date">${dateStr}</span><span class="now-time">${timeStr}</span>`;
   },
 
   renderMap() {
