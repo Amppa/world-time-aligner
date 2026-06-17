@@ -1,6 +1,5 @@
 const i18nTranslations = {
   zh: {
-    title: "世界時間",
     nowTextLoading: "正在讀取目前時間",
     mapSettings: "地圖設定",
     resetCities: "重設城市",
@@ -9,7 +8,7 @@ const i18nTranslations = {
     width: "寬度縮放",
     height: "高度縮放",
     mapYOffset: "地圖y偏移",
-    dstLabel: "(夏日時令)",
+    dstLabel: "☀️",
     customCity: "自訂城市",
     cityName: "名稱",
     cityNamePlaceholder: "例如：香港",
@@ -22,7 +21,6 @@ const i18nTranslations = {
     updateBtn: "更新",
     deleteBtn: "刪除",
     language: "Language",
-    localTimezone: "本機時區",
     removeCity: "移除 {name}",
     selectCity: "選擇 {name}",
     timePeriodSettings: "時段色彩設定",
@@ -41,7 +39,6 @@ const i18nTranslations = {
     langEn: "English"
   },
   en: {
-    title: "World Time",
     nowTextLoading: "Loading current time...",
     mapSettings: "Map Settings",
     resetCities: "Reset Cities",
@@ -50,7 +47,7 @@ const i18nTranslations = {
     width: "Width Scale",
     height: "Height Scale",
     mapYOffset: "Map Y Offset",
-    dstLabel: "(DST)",
+    dstLabel: "☀️",
     customCity: "Custom City",
     cityName: "Name",
     cityNamePlaceholder: "e.g., Hong Kong",
@@ -63,7 +60,6 @@ const i18nTranslations = {
     updateBtn: "Update",
     deleteBtn: "Delete",
     language: "Language",
-    localTimezone: "Local Timezone",
     removeCity: "Remove {name}",
     selectCity: "Select {name}",
     timePeriodSettings: "Time Period Colors",
