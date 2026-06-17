@@ -289,6 +289,48 @@ function utcOffsetText(date, zone) {
   return `UTC${sign}${hour}${minute}`;
 }
 
+function getOffsetMinutes(date, zone) {
+  const resolved = resolveZone(zone);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: resolved,
+    timeZoneName: "longOffset"
+  }).formatToParts(date);
+  const offsetStr = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
+  if (offsetStr === "GMT") return 0;
+  
+  const match = offsetStr.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
+  if (!match) return 0;
+  
+  const sign = match[1] === "+" ? 1 : -1;
+  const hours = Number(match[2]);
+  const minutes = match[3] ? Number(match[3]) : 0;
+  return sign * (hours * 60 + minutes);
+}
+
+function isCurrentlyDST(zone) {
+  try {
+    const resolved = resolveZone(zone);
+    const currentYear = new Date().getFullYear();
+    
+    const jan = new Date(Date.UTC(currentYear, 0, 1));
+    const jul = new Date(Date.UTC(currentYear, 6, 1));
+    
+    const janOffset = getOffsetMinutes(jan, resolved);
+    const julOffset = getOffsetMinutes(jul, resolved);
+    
+    if (janOffset === julOffset) {
+      return false;
+    }
+    
+    const maxOffset = Math.max(janOffset, julOffset);
+    const curOffset = getOffsetMinutes(new Date(), resolved);
+    
+    return curOffset === maxOffset;
+  } catch {
+    return false;
+  }
+}
+
 function makeBaseHours() {
   const now = new Date();
   const start = new Date(now);
@@ -453,7 +495,8 @@ function renderRows() {
     const cityName = getCityName(city);
     const labelText = document.createElement("div");
     labelText.className = "city-label-text";
-    labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${utcOffsetText(new Date(), city.zone)} · ${formatTime(new Date(), city.zone)}</span>`;
+    const dstSuffix = isCurrentlyDST(city.zone) ? ` ${getTranslation("dstLabel")}` : "";
+    labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${utcOffsetText(new Date(), city.zone)} · ${formatTime(new Date(), city.zone)}${dstSuffix}</span>`;
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
