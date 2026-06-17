@@ -316,6 +316,7 @@ function renderMap() {
   }
   cityLayer.innerHTML = "";
   allCities().forEach((city) => {
+    if (city.id.startsWith("custom-utc-")) return;
     const position = mapPosition(city);
     const button = document.createElement("button");
     button.type = "button";
@@ -636,6 +637,7 @@ function render() {
   makeBaseHours();
   renderNowText();
   renderMap();
+  renderTimezoneLines();
   renderHeader();
   renderRows();
   renderCustomCityEditor();
@@ -648,8 +650,116 @@ resetButton.addEventListener("click", () => {
   render();
 });
 
+function getLongitudeX(lng) {
+  const cx = 0.2816 * lng + 46.2357;
+  return 50 + (cx - 50) * mapSettings.widthScale + mapSettings.lngOffset;
+}
+
+function getXLongitude(x) {
+  const cx = 50 + (x - 50 - mapSettings.lngOffset) / mapSettings.widthScale;
+  return (cx - 46.2357) / 0.2816;
+}
+
+function renderTimezoneLines() {
+  const container = document.querySelector(".time-zone-lines");
+  if (!container) return;
+  container.innerHTML = "";
+  container.style.backgroundImage = "none";
+  
+  for (let offset = -12; offset <= 12; offset++) {
+    const lng = offset * 15 - 7.5;
+    const x = clamp(getLongitudeX(lng), 0, 100);
+    
+    const line = document.createElement("div");
+    line.style.position = "absolute";
+    line.style.left = `${x}%`;
+    line.style.top = "0";
+    line.style.bottom = "0";
+    line.style.width = "1px";
+    line.style.backgroundColor = "rgba(8, 74, 96, 0.18)";
+    container.append(line);
+  }
+}
+
+function addGeneratedTimezone(offset, clickX, clickY) {
+  const offsetText = offset >= 0 ? `+${offset}` : `${offset}`;
+  const name = `UTC${offsetText}`;
+  
+  let zone;
+  if (offset === 0) {
+    zone = "Etc/GMT";
+  } else if (offset > 0) {
+    zone = `Etc/GMT-${offset}`;
+  } else {
+    zone = `Etc/GMT+${Math.abs(offset)}`;
+  }
+
+  const x = clamp(50 + (clickX - 50 - mapSettings.lngOffset) / mapSettings.widthScale, 0, 100);
+  const y = clamp(50 + (clickY - 50 + mapSettings.latOffset) / mapSettings.heightScale, 0, 100);
+
+  const newCity = {
+    id: `custom-utc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    zone,
+    x,
+    y
+  };
+
+  customCities = [...customCities, newCity];
+  saveCustomCities();
+  toggleCity(newCity.id);
+  renderCustomCityEditor();
+}
+
+function wireMapTimezoneHover() {
+  const mapShell = document.querySelector(".map-shell");
+  const timezoneHoverBar = document.querySelector("#timezoneHoverBar");
+  const cityLayer = document.querySelector("#cityLayer");
+
+  if (mapShell && timezoneHoverBar) {
+    mapShell.addEventListener("mousemove", (e) => {
+      const rect = mapShell.getBoundingClientRect();
+      const relativeX = (e.clientX - rect.left) / rect.width;
+      if (relativeX >= 0 && relativeX <= 1) {
+        const x = relativeX * 100;
+        const lng = getXLongitude(x);
+        const offset = clamp(Math.round(lng / 15), -12, 12);
+        
+        const x_left = clamp(getLongitudeX(offset * 15 - 7.5), 0, 100);
+        const x_right = clamp(getLongitudeX(offset * 15 + 7.5), 0, 100);
+        
+        timezoneHoverBar.style.left = `${x_left}%`;
+        timezoneHoverBar.style.width = `${x_right - x_left}%`;
+        timezoneHoverBar.hidden = false;
+      } else {
+        timezoneHoverBar.hidden = true;
+      }
+    });
+
+    mapShell.addEventListener("mouseleave", () => {
+      timezoneHoverBar.hidden = true;
+    });
+  }
+
+  if (cityLayer) {
+    cityLayer.addEventListener("click", (e) => {
+      if (e.target === cityLayer) {
+        const rect = cityLayer.getBoundingClientRect();
+        const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+        const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        const lng = getXLongitude(clickX);
+        const offset = clamp(Math.round(lng / 15), -12, 12);
+        
+        addGeneratedTimezone(offset, clickX, clickY);
+      }
+    });
+  }
+}
+
 wireSettings();
 wireTimelineHover();
+wireMapTimezoneHover();
 renderSettingsControls();
 
 langSelect.value = currentLang;
