@@ -28,7 +28,13 @@ const i18nTranslations = {
     period2: "時段二",
     period3: "時段三",
     bgColor: "背景",
-    textColor: "文字"
+    textColor: "文字",
+    langSection: "1. 語言",
+    mapCalibrationSection: "2. 城市位置偏移",
+    customCitySection: "3. 手動新增城市",
+    timePeriodSection: "4. 時段設定",
+    resetTimePeriods: "預設時段顏色",
+    resetCitiesBtn: "預設城市"
   },
   en: {
     title: "World Time",
@@ -59,7 +65,13 @@ const i18nTranslations = {
     period2: "Period 2",
     period3: "Period 3",
     bgColor: "BG",
-    textColor: "Text"
+    textColor: "Text",
+    langSection: "1. Language",
+    mapCalibrationSection: "2. City Position Offset",
+    customCitySection: "3. Custom Cities",
+    timePeriodSection: "4. Time Period Settings",
+    resetTimePeriods: "Reset Time Period Colors",
+    resetCitiesBtn: "Reset Cities"
   }
 };
 

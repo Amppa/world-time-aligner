@@ -5,10 +5,10 @@ const storageKey = "worldTimeAlignerCities";
 const mapSettingsKey = "worldTimeAlignerMapSettings";
 const customCitiesKey = "worldTimeAlignerCustomCities";
 const defaultMapSettings = {
-  lngOffset: 0,
-  latOffset: 0,
-  widthScale: 1,
-  heightScale: 0.7
+  lngOffset: -1.5,
+  latOffset: -8.3,
+  widthScale: 1.04,
+  heightScale: 1.25
 };
 
 const cityLayer = document.querySelector("#cityLayer");
@@ -21,6 +21,7 @@ const resetButton = document.querySelector("#resetButton");
 const settingsButton = document.querySelector("#settingsButton");
 const settingsPanel = document.querySelector("#settingsPanel");
 const resetMapButton = document.querySelector("#resetMapButton");
+const resetPeriodsButton = document.querySelector("#resetPeriodsButton");
 const customCityName = document.querySelector("#customCityName");
 const customCityZone = document.querySelector("#customCityZone");
 const customCityX = document.querySelector("#customCityX");
@@ -378,14 +379,19 @@ function wireSettings() {
     mapSettings = { ...defaultMapSettings };
     saveMapSettings();
 
-    timePeriods = JSON.parse(JSON.stringify(defaultTimePeriods));
-    saveTimePeriods();
-    renderPeriodSettings();
-
     renderSettingsControls();
     renderMap();
     render();
   });
+
+  if (resetPeriodsButton) {
+    resetPeriodsButton.addEventListener("click", () => {
+      timePeriods = JSON.parse(JSON.stringify(defaultTimePeriods));
+      saveTimePeriods();
+      renderPeriodSettings();
+      render();
+    });
+  }
 
   addCustomCityButton.addEventListener("click", () => {
     const name = customCityName.value.trim();

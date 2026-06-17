@@ -21,131 +21,155 @@
       </header>
 
       <section id="settingsPanel" class="settings-panel" aria-label="地圖參數設定" data-i18n-aria-label="mapParams" hidden>
-        <div class="settings-top">
-          <label class="lang-control">
-            <span data-i18n="language">Language</span>
-            <select id="langSelect">
-              <option value="zh">繁體中文</option>
-              <option value="en">English</option>
-            </select>
-          </label>
-        </div>
-        <div class="settings-grid">
-          <label class="setting-control">
-            <span data-i18n="longitude">經度</span>
-            <button type="button" data-adjust="lngOffset" data-delta="-0.1">−</button>
-            <input type="range" min="-40" max="40" step="0.1" data-setting="lngOffset">
-            <button type="button" data-adjust="lngOffset" data-delta="0.1">+</button>
-            <output data-output="lngOffset">0.0</output>
-          </label>
-          <label class="setting-control">
-            <span data-i18n="latitude">緯度</span>
-            <button type="button" data-adjust="latOffset" data-delta="-0.1">−</button>
-            <input type="range" min="-40" max="40" step="0.1" data-setting="latOffset">
-            <button type="button" data-adjust="latOffset" data-delta="0.1">+</button>
-            <output data-output="latOffset">0.0</output>
-          </label>
-          <label class="setting-control">
-            <span data-i18n="width">寬度</span>
-            <button type="button" data-adjust="widthScale" data-delta="-0.01">−</button>
-            <input type="range" min="0.50" max="1.50" step="0.01" data-setting="widthScale">
-            <button type="button" data-adjust="widthScale" data-delta="0.01">+</button>
-            <output data-output="widthScale">1.00</output>
-          </label>
-          <label class="setting-control">
-            <span data-i18n="height">高度</span>
-            <button type="button" data-adjust="heightScale" data-delta="-0.01">−</button>
-            <input type="range" min="0.50" max="1.50" step="0.01" data-setting="heightScale">
-            <button type="button" data-adjust="heightScale" data-delta="0.01">+</button>
-            <output data-output="heightScale">0.70</output>
-          </label>
-        </div>
-        <div class="custom-city-panel">
-          <h2 data-i18n="customCity">自訂城市</h2>
-          <div class="custom-city-form">
-            <label>
-              <span data-i18n="cityName">名稱</span>
-              <input id="customCityName" type="text" placeholder="例如：香港" data-i18n-placeholder="cityNamePlaceholder" maxlength="20">
+        <!-- 1. 語言 -->
+        <details open>
+          <summary data-i18n="langSection">1. 語言</summary>
+          <div class="details-content">
+            <label class="lang-control">
+              <span data-i18n="language">Language</span>
+              <select id="langSelect">
+                <option value="zh">繁體中文</option>
+                <option value="en">English</option>
+              </select>
             </label>
-            <label>
-              <span data-i18n="timezone">時區</span>
-              <input id="customCityZone" type="text" placeholder="例如：Asia/Hong_Kong" data-i18n-placeholder="timezonePlaceholder" maxlength="40">
-            </label>
-            <label>
-              <span>X</span>
-              <input id="customCityX" type="number" min="0" max="100" step="0.1" value="50">
-            </label>
-            <label>
-              <span>Y</span>
-              <input id="customCityY" type="number" min="0" max="100" step="0.1" value="50">
-            </label>
-            <button id="addCustomCityButton" class="text-button" type="button" data-i18n="addCity">新增城市</button>
           </div>
-          <div id="customCityList" class="custom-city-list" aria-label="自訂城市列表"></div>
-        </div>
-        <div class="time-periods-panel">
-          <h2 data-i18n="timePeriodSettings">時段色彩設定</h2>
-          <div class="time-periods-list">
-            <div class="period-setting-row" data-period="0">
-              <span class="period-label" data-i18n="period1">時段一</span>
-              <div class="period-range">
-                <select class="period-start"></select>
-                <span>-</span>
-                <select class="period-end"></select>
-              </div>
-              <div class="period-colors">
-                <label>
-                  <span data-i18n="bgColor">背景</span>
-                  <input type="color" class="period-bg-color">
-                </label>
-                <label>
-                  <span data-i18n="textColor">文字</span>
-                  <input type="color" class="period-text-color">
-                </label>
-              </div>
+        </details>
+
+        <!-- 2. 城市位置偏移 -->
+        <details>
+          <summary data-i18n="mapCalibrationSection">2. 城市位置偏移</summary>
+          <div class="details-content">
+            <div class="settings-grid">
+              <label class="setting-control">
+                <span data-i18n="longitude">經度</span>
+                <button type="button" data-adjust="lngOffset" data-delta="-0.1">−</button>
+                <input type="range" min="-40" max="40" step="0.1" value="-1.5" data-setting="lngOffset">
+                <button type="button" data-adjust="lngOffset" data-delta="0.1">+</button>
+                <output data-output="lngOffset">-1.5</output>
+              </label>
+              <label class="setting-control">
+                <span data-i18n="latitude">緯度</span>
+                <button type="button" data-adjust="latOffset" data-delta="-0.1">−</button>
+                <input type="range" min="-40" max="40" step="0.1" value="-8.3" data-setting="latOffset">
+                <button type="button" data-adjust="latOffset" data-delta="0.1">+</button>
+                <output data-output="latOffset">-8.3</output>
+              </label>
+              <label class="setting-control">
+                <span data-i18n="width">寬度</span>
+                <button type="button" data-adjust="widthScale" data-delta="-0.01">−</button>
+                <input type="range" min="0.50" max="1.50" step="0.01" value="1.04" data-setting="widthScale">
+                <button type="button" data-adjust="widthScale" data-delta="0.01">+</button>
+                <output data-output="widthScale">1.04</output>
+              </label>
+              <label class="setting-control">
+                <span data-i18n="height">高度</span>
+                <button type="button" data-adjust="heightScale" data-delta="-0.01">−</button>
+                <input type="range" min="0.50" max="1.50" step="0.01" value="1.25" data-setting="heightScale">
+                <button type="button" data-adjust="heightScale" data-delta="0.01">+</button>
+                <output data-output="heightScale">1.25</output>
+              </label>
             </div>
-            <div class="period-setting-row" data-period="1">
-              <span class="period-label" data-i18n="period2">時段二</span>
-              <div class="period-range">
-                <select class="period-start"></select>
-                <span>-</span>
-                <select class="period-end"></select>
-              </div>
-              <div class="period-colors">
-                <label>
-                  <span data-i18n="bgColor">背景</span>
-                  <input type="color" class="period-bg-color">
-                </label>
-                <label>
-                  <span data-i18n="textColor">文字</span>
-                  <input type="color" class="period-text-color">
-                </label>
-              </div>
-            </div>
-            <div class="period-setting-row" data-period="2">
-              <span class="period-label" data-i18n="period3">時段三</span>
-              <div class="period-range">
-                <select class="period-start"></select>
-                <span>-</span>
-                <select class="period-end"></select>
-              </div>
-              <div class="period-colors">
-                <label>
-                  <span data-i18n="bgColor">背景</span>
-                  <input type="color" class="period-bg-color">
-                </label>
-                <label>
-                  <span data-i18n="textColor">文字</span>
-                  <input type="color" class="period-text-color">
-                </label>
-              </div>
+            <div class="settings-actions" style="margin-top: 12px;">
+              <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">重設地圖參數</button>
             </div>
           </div>
-        </div>
-        <div class="settings-actions">
-          <button id="resetButton" class="text-button" type="button" data-i18n="resetCities">重設城市</button>
-          <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">重設地圖參數</button>
-        </div>
+        </details>
+
+        <!-- 3. 手動新增城市 -->
+        <details>
+          <summary data-i18n="customCitySection">3. 手動新增城市</summary>
+          <div class="details-content">
+            <div class="custom-city-form">
+              <label>
+                <span data-i18n="cityName">名稱</span>
+                <input id="customCityName" type="text" placeholder="例如：香港" data-i18n-placeholder="cityNamePlaceholder" maxlength="20">
+              </label>
+              <label>
+                <span data-i18n="timezone">時區</span>
+                <input id="customCityZone" type="text" placeholder="例如：Hong_Kong" data-i18n-placeholder="timezonePlaceholder" maxlength="40">
+              </label>
+              <label>
+                <span>X</span>
+                <input id="customCityX" type="number" min="0" max="100" step="0.1" value="50">
+              </label>
+              <label>
+                <span>Y</span>
+                <input id="customCityY" type="number" min="0" max="100" step="0.1" value="50">
+              </label>
+              <button id="addCustomCityButton" class="text-button" type="button" data-i18n="addCity">新增城市</button>
+            </div>
+            <div id="customCityList" class="custom-city-list" aria-label="自訂城市列表"></div>
+            <div class="settings-actions" style="margin-top: 12px;">
+              <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">預設城市</button>
+            </div>
+          </div>
+        </details>
+
+        <!-- 4. 時段設定 -->
+        <details>
+          <summary data-i18n="timePeriodSection">4. 時段設定</summary>
+          <div class="details-content">
+            <div class="time-periods-list">
+              <div class="period-setting-row" data-period="0">
+                <span class="period-label" data-i18n="period1">時段一</span>
+                <div class="period-range">
+                  <select class="period-start"></select>
+                  <span>-</span>
+                  <select class="period-end"></select>
+                </div>
+                <div class="period-colors">
+                  <label>
+                    <span data-i18n="bgColor">背景</span>
+                    <input type="color" class="period-bg-color">
+                  </label>
+                  <label>
+                    <span data-i18n="textColor">文字</span>
+                    <input type="color" class="period-text-color">
+                  </label>
+                </div>
+              </div>
+              <div class="period-setting-row" data-period="1">
+                <span class="period-label" data-i18n="period2">時段二</span>
+                <div class="period-range">
+                  <select class="period-start"></select>
+                  <span>-</span>
+                  <select class="period-end"></select>
+                </div>
+                <div class="period-colors">
+                  <label>
+                    <span data-i18n="bgColor">背景</span>
+                    <input type="color" class="period-bg-color">
+                  </label>
+                  <label>
+                    <span data-i18n="textColor">文字</span>
+                    <input type="color" class="period-text-color">
+                  </label>
+                </div>
+              </div>
+              <div class="period-setting-row" data-period="2">
+                <span class="period-label" data-i18n="period3">時段三</span>
+                <div class="period-range">
+                  <select class="period-start"></select>
+                  <span>-</span>
+                  <select class="period-end"></select>
+                </div>
+                <div class="period-colors">
+                  <label>
+                    <span data-i18n="bgColor">背景</span>
+                    <input type="color" class="period-bg-color">
+                  </label>
+                  <label>
+                    <span data-i18n="textColor">文字</span>
+                    <input type="color" class="period-text-color">
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="settings-actions" style="margin-top: 12px;">
+              <button id="resetPeriodsButton" class="text-button" type="button" data-i18n="resetTimePeriods">預設時段顏色</button>
+            </div>
+          </div>
+        </details>
       </section>
 
       <section class="map-panel" aria-label="世界小地圖" data-i18n-aria-label="worldMapAlt">
