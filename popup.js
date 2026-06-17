@@ -2,13 +2,13 @@
 const defaultSelection = ["taipei", "london", "new-york", "tokyo"];
 const maxCities = 6;
 const storageKey = "worldTimeAlignerCities";
-const mapSettingsKey = "worldTimeAlignerMapSettings";
+const mapSettingsKey = "worldTimeAlignerMapSettings_v3";
 const customCitiesKey = "worldTimeAlignerCustomCities";
 const defaultMapSettings = {
-  lngOffset: -1.5,
-  latOffset: -8.3,
-  widthScale: 1.04,
-  heightScale: 1.25
+  lngOffset: 1.0,
+  latOffset: 20.7,
+  widthScale: 1.0,
+  heightScale: 1.39
 };
 
 const cityLayer = document.querySelector("#cityLayer");
@@ -245,7 +245,7 @@ function mapPosition(city) {
   }
   return {
     x: clamp(50 + (cx - 50) * mapSettings.widthScale + mapSettings.lngOffset, 0, 100),
-    y: clamp(50 + (cy - 50) * mapSettings.heightScale + mapSettings.latOffset, 0, 100)
+    y: clamp(50 + (cy - 50) * mapSettings.heightScale - mapSettings.latOffset, 0, 100)
   };
 }
 
