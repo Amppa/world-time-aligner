@@ -1,6 +1,6 @@
 
 const defaultSelection = ["taipei", "london", "new-york", "tokyo"];
-const maxCities = 4;
+const maxCities = 6;
 const storageKey = "worldTimeAlignerCities";
 const mapSettingsKey = "worldTimeAlignerMapSettings";
 const customCitiesKey = "worldTimeAlignerCustomCities";
@@ -146,16 +146,16 @@ function applyLanguage() {
   });
 }
 
-let selectedIds = loadSelection();
 let mapSettings = loadMapSettings();
 let customCities = loadCustomCities();
+let selectedIds = loadSelection();
 let baseHours = [];
 
 function loadSelection() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (Array.isArray(saved) && saved.length) {
-      return saved.filter((id) => cityCatalog.some((city) => city.id === id)).slice(0, maxCities);
+    if (Array.isArray(saved)) {
+      return saved.filter((id) => allCities().some((city) => city.id === id)).slice(0, maxCities);
     }
   } catch {
     localStorage.removeItem(storageKey);
@@ -470,7 +470,6 @@ function renderRows() {
 
 function toggleCity(id) {
   if (selectedIds.includes(id)) {
-    if (selectedIds.length === 1) return;
     selectedIds = selectedIds.filter((item) => item !== id);
   } else {
     selectedIds = [...selectedIds.slice(-(maxCities - 1)), id];
