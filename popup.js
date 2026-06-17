@@ -1,33 +1,3 @@
-const cityCatalog = [
-  { id: "taipei", name: "台北", zone: "Asia/Taipei", x: 81, y: 48 },
-  { id: "hong-kong", name: "香港", zone: "Asia/Hong_Kong", x: 78, y: 51 },
-  { id: "beijing", name: "北京", zone: "Asia/Shanghai", x: 78, y: 42 },
-  { id: "shanghai", name: "上海", zone: "Asia/Shanghai", x: 80, y: 47 },
-  { id: "tokyo", name: "東京", zone: "Asia/Tokyo", x: 87, y: 43 },
-  { id: "seoul", name: "首爾", zone: "Asia/Seoul", x: 82, y: 40 },
-  { id: "singapore", name: "新加坡", zone: "Asia/Singapore", x: 76, y: 64 },
-  { id: "bangkok", name: "曼谷", zone: "Asia/Bangkok", x: 73, y: 57 },
-  { id: "mumbai", name: "孟買", zone: "Asia/Kolkata", x: 66, y: 56 },
-  { id: "dubai", name: "杜拜", zone: "Asia/Dubai", x: 61, y: 52 },
-  { id: "london", name: "倫敦", zone: "Europe/London", x: 47, y: 34 },
-  { id: "berlin", name: "柏林", zone: "Europe/Berlin", x: 51, y: 36 },
-  { id: "paris", name: "巴黎", zone: "Europe/Paris", x: 49, y: 39 },
-  { id: "amsterdam", name: "阿姆斯特丹", zone: "Europe/Amsterdam", x: 49, y: 35 },
-  { id: "zurich", name: "蘇黎世", zone: "Europe/Zurich", x: 50, y: 38 },
-  { id: "rome", name: "羅馬", zone: "Europe/Rome", x: 51, y: 43 },
-  { id: "madrid", name: "馬德里", zone: "Europe/Madrid", x: 46, y: 43 },
-  { id: "istanbul", name: "伊斯坦堡", zone: "Europe/Istanbul", x: 55, y: 43 },
-  { id: "new-york", name: "紐約", zone: "America/New_York", x: 25, y: 41 },
-  { id: "washington-dc", name: "華盛頓 DC", zone: "America/New_York", x: 24, y: 44 },
-  { id: "toronto", name: "多倫多", zone: "America/Toronto", x: 23, y: 39 },
-  { id: "chicago", name: "芝加哥", zone: "America/Chicago", x: 20, y: 42 },
-  { id: "los-angeles", name: "洛杉磯", zone: "America/Los_Angeles", x: 12, y: 47 },
-  { id: "san-francisco", name: "舊金山", zone: "America/Los_Angeles", x: 11, y: 44 },
-  { id: "vancouver", name: "溫哥華", zone: "America/Vancouver", x: 11, y: 36 },
-  { id: "mexico-city", name: "墨西哥城", zone: "America/Mexico_City", x: 18, y: 55 },
-  { id: "sao-paulo", name: "聖保羅", zone: "America/Sao_Paulo", x: 35, y: 74 },
-  { id: "sydney", name: "雪梨", zone: "Australia/Sydney", x: 86, y: 80 }
-];
 
 const defaultSelection = ["taipei", "london", "new-york", "tokyo"];
 const maxCities = 4;
@@ -125,7 +95,25 @@ function getCityName(city) {
   if (city.id.startsWith("custom-")) {
     return city.name;
   }
-  return (typeof i18nCityNames !== "undefined" && i18nCityNames[currentLang]?.[city.id]) || city.name;
+  return (typeof i18nCityNames !== "undefined" && i18nCityNames[currentLang]?.[city.id]) || city.id;
+}
+
+function resolveZone(zone) {
+  if (!zone) return "";
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
+    return zone;
+  } catch {}
+
+  const prefixes = ["Asia", "Europe", "America", "Australia", "Africa", "Pacific", "Atlantic", "Indian"];
+  for (const prefix of prefixes) {
+    const candidate = `${prefix}/${zone}`;
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format(new Date());
+      return candidate;
+    } catch {}
+  }
+  return zone;
 }
 
 function applyLanguage() {
@@ -238,8 +226,9 @@ function findCity(id) {
 }
 
 function isValidZone(zone) {
+  const resolved = resolveZone(zone);
   try {
-    new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
+    new Intl.DateTimeFormat("en-US", { timeZone: resolved }).format(new Date());
     return true;
   } catch {
     return false;
@@ -254,9 +243,10 @@ function mapPosition(city) {
 }
 
 function formatTime(date, zone, options = {}) {
+  const resolved = resolveZone(zone);
   const locale = currentLang === "zh" ? "zh-TW" : "en-US";
   return new Intl.DateTimeFormat(locale, {
-    timeZone: zone,
+    timeZone: resolved,
     hour: "2-digit",
     minute: options.withMinutes === false ? undefined : "2-digit",
     hour12: false,
@@ -265,8 +255,9 @@ function formatTime(date, zone, options = {}) {
 }
 
 function hourInZone(date, zone) {
+  const resolved = resolveZone(zone);
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: zone,
+    timeZone: resolved,
     hour: "2-digit",
     hourCycle: "h23"
   }).formatToParts(date);
@@ -274,8 +265,9 @@ function hourInZone(date, zone) {
 }
 
 function utcOffsetText(date, zone) {
+  const resolved = resolveZone(zone);
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: zone,
+    timeZone: resolved,
     timeZoneName: "shortOffset"
   }).formatToParts(date);
   const offset = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
