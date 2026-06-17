@@ -245,6 +245,7 @@ const State = {
   timePeriods: [],
   currentLang: "zh",
   baseHours: [],
+  selectedOffsetHours: null,
 
   init() {
     this.currentLang = this.loadLanguage();
@@ -252,6 +253,7 @@ const State = {
     this.mapSettings = this.loadMapSettings();
     this.customCities = this.loadCustomCities();
     this.selectedIds = this.loadSelection();
+    this.selectedOffsetHours = null;
     this.makeBaseHours();
   },
 
@@ -621,7 +623,7 @@ const Renderer = {
     }
   },
 
-  renderDayNight() {
+  renderDayNight(offsetHours = 0) {
     if (!DOM.nightPath) return;
 
     if (DOM.dayNightOverlay) {
@@ -629,6 +631,9 @@ const Renderer = {
     }
 
     const now = new Date();
+    if (offsetHours !== 0) {
+      now.setTime(now.getTime() + offsetHours * 60 * 60 * 1000);
+    }
     // Fix declination to 50 degrees to get a gentle wave shape (amplitude of 40 degrees latitude)
     const declination = 35.0;
     const decRad = declination * Math.PI / 180;
@@ -662,11 +667,12 @@ const Renderer = {
     this.renderNowText();
     this.renderMap();
     this.renderTimezoneLines();
-    this.renderDayNight();
+    this.renderDayNight(State.selectedOffsetHours || 0);
     this.renderHeader();
     this.renderRows();
     this.renderCustomCityEditor();
     this.renderPeriodSettings();
+    AppController.updatePinState();
   }
 };
 
@@ -783,25 +789,39 @@ const AppController = {
     });
   },
 
-  updateHover(index) {
-    const hourGrid = document.querySelector(".hours");
+  positionHoverGuideToOffset(offsetHours) {
+    const hourGrid = DOM.hourHeader || document.querySelector(".hours");
     if (!hourGrid) return;
     const gridRect = hourGrid.getBoundingClientRect();
     const panelRect = DOM.timelinePanel.getBoundingClientRect();
-    const cellWidth = gridRect.width / 24;
-    DOM.hoverGuide.style.left = `${gridRect.left - panelRect.left + cellWidth * index + cellWidth / 2}px`;
-    DOM.timelinePanel.classList.add("is-hovering");
+    const relativeX = (offsetHours / 24) * gridRect.width;
+    const left = gridRect.left - panelRect.left + relativeX;
+    DOM.hoverGuide.style.left = `${left}px`;
+  },
+
+  updatePinState() {
+    if (State.selectedOffsetHours !== null) {
+      DOM.timelinePanel.classList.add("has-pin");
+      this.positionHoverGuideToOffset(State.selectedOffsetHours);
+    } else {
+      DOM.timelinePanel.classList.remove("has-pin");
+    }
   },
 
   wireTimelineHover() {
-    DOM.timelinePanel.addEventListener("mousemove", (event) => {
-      const cell = event.target.closest(".hour-cell");
+    DOM.timelinePanel.addEventListener("click", (event) => {
+      const cell = event.target.closest(".hour-cell, .hour-header span");
       if (!cell) return;
-      this.updateHover(Number(cell.dataset.index));
-    });
 
-    DOM.timelinePanel.addEventListener("mouseleave", () => {
-      DOM.timelinePanel.classList.remove("is-hovering");
+      const hourGrid = DOM.hourHeader || document.querySelector(".hours");
+      if (!hourGrid) return;
+      const gridRect = hourGrid.getBoundingClientRect();
+      const clampedX = MathUtils.clamp(event.clientX, gridRect.left, gridRect.right);
+      const clickedOffset = ((clampedX - gridRect.left) / gridRect.width) * 24;
+
+      State.selectedOffsetHours = clickedOffset;
+      this.updatePinState();
+      Renderer.renderDayNight(State.selectedOffsetHours);
     });
   },
 

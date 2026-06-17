@@ -551,6 +551,7 @@ h1 {
   background: var(--night);
 }
 
+/*
 .hour-cell.is-now::before {
   content: "";
   position: absolute;
@@ -559,6 +560,8 @@ h1 {
   border-radius: 5px;
   pointer-events: none;
 }
+*/
+
 
 .hover-guide {
   position: absolute;
@@ -571,8 +574,9 @@ h1 {
   z-index: 5;
 }
 
-.timeline-panel.is-hovering .hover-guide {
+.timeline-panel.has-pin .hover-guide {
   opacity: 1;
+  border-left-style: solid;
 }
 
 .time-periods-panel {
