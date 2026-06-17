@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>World Time Aligner</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>世界時間</h1>
+          <p id="nowText">正在讀取目前時間</p>
+        </div>
+        <div class="top-actions">
+          <button id="settingsButton" class="icon-button" type="button" title="地圖設定" aria-label="地圖設定" aria-expanded="false">
+            <span aria-hidden="true">⚙</span>
+          </button>
+          <button id="resetButton" class="icon-button" type="button" title="重設城市" aria-label="重設城市">
+            <span aria-hidden="true">↺</span>
+          </button>
+        </div>
+      </header>
+
+      <section id="settingsPanel" class="settings-panel" aria-label="地圖參數設定" hidden>
+        <div class="settings-grid">
+          <label class="setting-control">
+            <span>經度</span>
+            <button type="button" data-adjust="lngOffset" data-delta="-1">−</button>
+            <input type="range" min="-40" max="40" step="1" data-setting="lngOffset">
+            <button type="button" data-adjust="lngOffset" data-delta="1">+</button>
+            <output data-output="lngOffset">0</output>
+          </label>
+          <label class="setting-control">
+            <span>緯度</span>
+            <button type="button" data-adjust="latOffset" data-delta="-1">−</button>
+            <input type="range" min="-40" max="40" step="1" data-setting="latOffset">
+            <button type="button" data-adjust="latOffset" data-delta="1">+</button>
+            <output data-output="latOffset">0</output>
+          </label>
+          <label class="setting-control">
+            <span>寬度</span>
+            <button type="button" data-adjust="widthScale" data-delta="-0.01">−</button>
+            <input type="range" min="0.50" max="1.50" step="0.01" data-setting="widthScale">
+            <button type="button" data-adjust="widthScale" data-delta="0.01">+</button>
+            <output data-output="widthScale">1.00</output>
+          </label>
+          <label class="setting-control">
+            <span>高度</span>
+            <button type="button" data-adjust="heightScale" data-delta="-0.01">−</button>
+            <input type="range" min="0.50" max="1.50" step="0.01" data-setting="heightScale">
+            <button type="button" data-adjust="heightScale" data-delta="0.01">+</button>
+            <output data-output="heightScale">0.70</output>
+          </label>
+        </div>
+        <div class="custom-city-panel">
+          <h2>自訂城市</h2>
+          <div class="custom-city-form">
+            <label>
+              <span>名稱</span>
+              <input id="customCityName" type="text" placeholder="例如：香港" maxlength="20">
+            </label>
+            <label>
+              <span>時區</span>
+              <input id="customCityZone" type="text" placeholder="例如：Asia/Hong_Kong" maxlength="40">
+            </label>
+            <label>
+              <span>X</span>
+              <input id="customCityX" type="number" min="0" max="100" step="0.1" value="50">
+            </label>
+            <label>
+              <span>Y</span>
+              <input id="customCityY" type="number" min="0" max="100" step="0.1" value="50">
+            </label>
+            <button id="addCustomCityButton" class="text-button" type="button">新增城市</button>
+          </div>
+          <div id="customCityList" class="custom-city-list" aria-label="自訂城市列表"></div>
+        </div>
+        <button id="resetMapButton" class="text-button" type="button">重設地圖參數</button>
+      </section>
+
+      <section class="map-panel" aria-label="世界小地圖">
+        <div class="map-shell">
+          <img class="world-map" src="assets/world-map.jpg" alt="淡藍色點陣世界地圖">
+          <div class="time-zone-lines" aria-hidden="true"></div>
+          <div id="cityLayer" class="city-layer" aria-label="城市選擇"></div>
+        </div>
+        <div id="cityChips" class="city-chips" aria-label="已選城市"></div>
+      </section>
+
+      <section class="timeline-panel" aria-label="24 小時時間軸">
+        <div class="timeline-head">
+          <span>城市</span>
+          <div id="hourHeader" class="hour-header" aria-hidden="true"></div>
+        </div>
+        <div id="timelineRows" class="timeline-rows"></div>
+        <div id="hoverGuide" class="hover-guide" aria-hidden="true"></div>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
