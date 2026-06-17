@@ -274,7 +274,6 @@ h1 {
   min-height: 28px;
 }
 
-.map-panel,
 .timeline-panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -282,6 +281,47 @@ h1 {
 }
 
 .map-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-panel summary {
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  background: #fbfcfa;
+  font-size: 13px;
+  color: var(--ink);
+  border-bottom: 1px solid transparent;
+}
+
+.map-panel[open] summary {
+  border-bottom-color: var(--line);
+}
+
+.map-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.map-panel summary::after {
+  content: "▼";
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+
+.map-panel[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.map-content {
   padding: 10px;
 }
 

@@ -180,14 +180,17 @@
         </details>
       </section>
 
-      <section class="map-panel" aria-label="World Map" data-i18n-aria-label="worldMapAlt">
-        <div class="map-shell">
-          <img class="world-map" src="assets/world-map.jpg" alt="World Map" data-i18n-alt="worldMapAlt">
-          <div class="time-zone-lines" aria-hidden="true"></div>
-          <div id="timezoneHoverBar" class="timezone-hover-bar" hidden></div>
-          <div id="cityLayer" class="city-layer" aria-label="City Pins"></div>
+      <details class="map-panel" open>
+        <summary data-i18n="worldMapTitle">World Map</summary>
+        <div class="map-content">
+          <div class="map-shell">
+            <img class="world-map" src="assets/world-map.jpg" alt="World Map" data-i18n-alt="worldMapAlt">
+            <div class="time-zone-lines" aria-hidden="true"></div>
+            <div id="timezoneHoverBar" class="timezone-hover-bar" hidden></div>
+            <div id="cityLayer" class="city-layer" aria-label="City Pins"></div>
+          </div>
         </div>
-      </section>
+      </details>
 
       <section class="timeline-panel" aria-label="Timeline">
         <div class="timeline-head">
