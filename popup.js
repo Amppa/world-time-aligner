@@ -42,7 +42,6 @@ const defaultMapSettings = {
 };
 
 const cityLayer = document.querySelector("#cityLayer");
-const cityChips = document.querySelector("#cityChips");
 const timelineRows = document.querySelector("#timelineRows");
 const hourHeader = document.querySelector("#hourHeader");
 const hoverGuide = document.querySelector("#hoverGuide");
@@ -415,26 +414,6 @@ function wireSettings() {
   });
 }
 
-function renderChips() {
-  cityChips.innerHTML = "";
-  selectedIds.forEach((id) => {
-    const city = findCity(id);
-    if (!city) return;
-    const chip = document.createElement("span");
-    chip.className = "chip";
-    const cityName = getCityName(city);
-    chip.textContent = `${cityName} ${utcOffsetText(new Date(), city.zone)} ${formatTime(new Date(), city.zone)}`;
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.textContent = "×";
-    remove.title = getTranslation("removeCity", { name: cityName });
-    remove.setAttribute("aria-label", getTranslation("removeCity", { name: cityName }));
-    remove.addEventListener("click", () => toggleCity(city.id));
-    chip.append(remove);
-    cityChips.append(chip);
-  });
-}
 
 function renderHeader() {
   hourHeader.innerHTML = "";
@@ -644,7 +623,6 @@ function render() {
   makeBaseHours();
   renderNowText();
   renderMap();
-  renderChips();
   renderHeader();
   renderRows();
   renderCustomCityEditor();
