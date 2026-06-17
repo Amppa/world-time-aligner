@@ -53,7 +53,9 @@ const DOM = {
   mapImg: document.querySelector(".world-map"),
   mapShell: document.querySelector(".map-shell"),
   timezoneHoverBar: document.querySelector("#timezoneHoverBar"),
-  timezoneLines: document.querySelector(".time-zone-lines")
+  timezoneLines: document.querySelector(".time-zone-lines"),
+  dayNightOverlay: document.querySelector("#dayNightOverlay"),
+  nightPath: document.querySelector("#nightPath")
 };
 
 // ==========================================
@@ -71,7 +73,7 @@ const TimeUtils = {
     try {
       new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
       return zone;
-    } catch {}
+    } catch { }
 
     const prefixes = ["Asia", "Europe", "America", "Australia", "Africa", "Pacific", "Atlantic", "Indian"];
     for (const prefix of prefixes) {
@@ -79,7 +81,7 @@ const TimeUtils = {
       try {
         new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format(new Date());
         return candidate;
-      } catch {}
+      } catch { }
     }
     return zone;
   },
@@ -140,10 +142,10 @@ const TimeUtils = {
     }).formatToParts(date);
     const offsetStr = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
     if (offsetStr === "GMT") return 0;
-    
+
     const match = offsetStr.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
     if (!match) return 0;
-    
+
     const sign = match[1] === "+" ? 1 : -1;
     const hours = Number(match[2]);
     const minutes = match[3] ? Number(match[3]) : 0;
@@ -154,20 +156,20 @@ const TimeUtils = {
     try {
       const resolved = this.resolveZone(zone);
       const currentYear = new Date().getFullYear();
-      
+
       const jan = new Date(Date.UTC(currentYear, 0, 1));
       const jul = new Date(Date.UTC(currentYear, 6, 1));
-      
+
       const janOffset = this.getOffsetMinutes(jan, resolved);
       const julOffset = this.getOffsetMinutes(jul, resolved);
-      
+
       if (janOffset === julOffset) {
         return false;
       }
-      
+
       const maxOffset = Math.max(janOffset, julOffset);
       const curOffset = this.getOffsetMinutes(new Date(), resolved);
-      
+
       return curOffset === maxOffset;
     } catch {
       return false;
@@ -257,7 +259,7 @@ const State = {
     try {
       const saved = localStorage.getItem(CONFIG.languageKey);
       if (saved === "zh" || saved === "en") return saved;
-    } catch {}
+    } catch { }
     const navLang = navigator.language || navigator.userLanguage || "zh";
     return navLang.toLowerCase().startsWith("en") ? "en" : "zh";
   },
@@ -266,7 +268,7 @@ const State = {
     this.currentLang = lang;
     try {
       localStorage.setItem(CONFIG.languageKey, lang);
-    } catch {}
+    } catch { }
   },
 
   loadTimePeriods() {
@@ -275,14 +277,14 @@ const State = {
       if (Array.isArray(saved) && saved.length === 3) {
         return saved;
       }
-    } catch {}
+    } catch { }
     return JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
   },
 
   saveTimePeriods() {
     try {
       localStorage.setItem(CONFIG.timePeriodsKey, JSON.stringify(this.timePeriods));
-    } catch {}
+    } catch { }
   },
 
   loadMapSettings() {
@@ -550,12 +552,12 @@ const Renderer = {
         State.customCities = State.customCities.map((existing) =>
           existing.id === city.id
             ? {
-                ...existing,
-                name: nextName,
-                zone: nextZone,
-                x: MathUtils.clamp(Number(inputs[2].value), 0, 100),
-                y: MathUtils.clamp(Number(inputs[3].value), 0, 100)
-              }
+              ...existing,
+              name: nextName,
+              zone: nextZone,
+              x: MathUtils.clamp(Number(inputs[2].value), 0, 100),
+              y: MathUtils.clamp(Number(inputs[3].value), 0, 100)
+            }
             : existing
         );
         State.saveCustomCities();
@@ -603,11 +605,11 @@ const Renderer = {
     if (!DOM.timezoneLines) return;
     DOM.timezoneLines.innerHTML = "";
     DOM.timezoneLines.style.backgroundImage = "none";
-    
+
     for (let offset = -12; offset <= 12; offset++) {
       const lng = offset * 15 - 7.5;
       const x = MathUtils.clamp(MapUtils.getLongitudeX(lng), 0, 100);
-      
+
       const line = document.createElement("div");
       line.style.position = "absolute";
       line.style.left = `${x}%`;
@@ -619,11 +621,48 @@ const Renderer = {
     }
   },
 
+  renderDayNight() {
+    if (!DOM.nightPath) return;
+
+    if (DOM.dayNightOverlay) {
+      DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
+    }
+
+    const now = new Date();
+    // Fix declination to 50 degrees to get a gentle wave shape (amplitude of 40 degrees latitude)
+    const declination = 35.0;
+    const decRad = declination * Math.PI / 180;
+    const tanDec = Math.tan(decRad);
+    const yShift = 10;
+
+    const utcHours = now.getUTCHours();
+    const utcMinutes = now.getUTCMinutes();
+    const subsolarLng = -(utcHours + utcMinutes / 60 - 12) * 15;
+
+    // Always close path at the bottom edge (South)
+    const poleY = 100;
+
+    const points = [];
+    for (let x = 0; x <= 100; x += 2) {
+      const lng = MapUtils.getXLongitude(x);
+      const diffLngRad = (lng - subsolarLng) * Math.PI / 180;
+      const latRad = Math.atan(-Math.cos(diffLngRad) / tanDec);
+      const lat = latRad * 180 / Math.PI + yShift;
+
+      const mapPos = MapUtils.mapPosition({ lng, lat });
+      points.push(`${mapPos.x.toFixed(1)},${mapPos.y.toFixed(1)}`);
+    }
+
+    const pathD = `M 0,${poleY} L ${points.join(" L ")} L 100,${poleY} Z`;
+    DOM.nightPath.setAttribute("d", pathD);
+  },
+
   render() {
     State.makeBaseHours();
     this.renderNowText();
     this.renderMap();
     this.renderTimezoneLines();
+    this.renderDayNight();
     this.renderHeader();
     this.renderRows();
     this.renderCustomCityEditor();
@@ -654,7 +693,7 @@ const AppController = {
   addGeneratedTimezone(offset, clickX, clickY) {
     const offsetText = offset >= 0 ? `+${offset}` : `${offset}`;
     const name = `UTC${offsetText}`;
-    
+
     let zone;
     if (offset === 0) {
       zone = "Etc/GMT";
@@ -775,10 +814,10 @@ const AppController = {
           const x = relativeX * 100;
           const lng = MapUtils.getXLongitude(x);
           const offset = MathUtils.clamp(Math.round(lng / 15), -12, 12);
-          
+
           const x_left = MathUtils.clamp(MapUtils.getLongitudeX(offset * 15 - 7.5), 0, 100);
           const x_right = MathUtils.clamp(MapUtils.getLongitudeX(offset * 15 + 7.5), 0, 100);
-          
+
           DOM.timezoneHoverBar.style.left = `${x_left}%`;
           DOM.timezoneHoverBar.style.width = `${x_right - x_left}%`;
           DOM.timezoneHoverBar.hidden = false;
@@ -798,10 +837,10 @@ const AppController = {
           const rect = DOM.cityLayer.getBoundingClientRect();
           const clickX = ((e.clientX - rect.left) / rect.width) * 100;
           const clickY = ((e.clientY - rect.top) / rect.height) * 100;
-          
+
           const lng = MapUtils.getXLongitude(clickX);
           const offset = MathUtils.clamp(Math.round(lng / 15), -12, 12);
-          
+
           this.addGeneratedTimezone(offset, clickX, clickY);
         }
       });
