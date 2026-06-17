@@ -619,7 +619,7 @@ function wireTimelineHover() {
 
 function renderNowText() {
   const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  nowText.textContent = `${getTranslation("localTimezone")} ${localZone} · ${formatTime(new Date(), localZone, { weekday: true })}`;
+  nowText.textContent = formatTime(new Date(), localZone);
 }
 
 function populatePeriodSelectors() {
