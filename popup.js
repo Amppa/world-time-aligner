@@ -2,13 +2,14 @@
 const defaultSelection = ["taipei", "london", "new-york", "tokyo"];
 const maxCities = 6;
 const storageKey = "worldTimeAlignerCities";
-const mapSettingsKey = "worldTimeAlignerMapSettings_v3";
+const mapSettingsKey = "worldTimeAlignerMapSettings_v4";
 const customCitiesKey = "worldTimeAlignerCustomCities";
 const defaultMapSettings = {
   lngOffset: 1.0,
   latOffset: 20.7,
   widthScale: 1.0,
-  heightScale: 1.39
+  heightScale: 1.39,
+  mapYOffset: 30
 };
 
 const cityLayer = document.querySelector("#cityLayer");
@@ -177,7 +178,8 @@ function loadMapSettings() {
         lngOffset: Number.isFinite(Number(saved.lngOffset)) ? Number(saved.lngOffset) : defaultMapSettings.lngOffset,
         latOffset: Number.isFinite(Number(saved.latOffset)) ? Number(saved.latOffset) : defaultMapSettings.latOffset,
         widthScale: Number.isFinite(Number(saved.widthScale)) ? Number(saved.widthScale) : defaultMapSettings.widthScale,
-        heightScale: Number.isFinite(Number(saved.heightScale)) ? Number(saved.heightScale) : defaultMapSettings.heightScale
+        heightScale: Number.isFinite(Number(saved.heightScale)) ? Number(saved.heightScale) : defaultMapSettings.heightScale,
+        mapYOffset: Number.isFinite(Number(saved.mapYOffset)) ? Number(saved.mapYOffset) : defaultMapSettings.mapYOffset
       };
     }
   } catch {
@@ -305,6 +307,13 @@ function timeTone(hour) {
 }
 
 function renderMap() {
+  const mapImg = document.querySelector(".world-map");
+  if (mapImg) {
+    mapImg.style.transform = `translateY(calc(-50% + ${mapSettings.mapYOffset || 0}px))`;
+  }
+  if (cityLayer) {
+    cityLayer.style.transform = `translateY(${mapSettings.mapYOffset || 0}px)`;
+  }
   cityLayer.innerHTML = "";
   allCities().forEach((city) => {
     const position = mapPosition(city);
@@ -323,6 +332,7 @@ function renderMap() {
 
 function formatSettingValue(key) {
   if (key.endsWith("Scale")) return mapSettings[key].toFixed(2);
+  if (key === "mapYOffset") return String(Math.round(mapSettings[key]));
   return mapSettings[key].toFixed(1);
 }
 

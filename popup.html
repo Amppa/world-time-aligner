@@ -68,6 +68,14 @@
                 <button type="button" data-adjust="heightScale" data-delta="0.01">+</button>
                 <output data-output="heightScale">1.39</output>
               </label>
+              <div></div>
+              <label class="setting-control">
+                <span data-i18n="mapYOffset">Map Y Offset</span>
+                <button type="button" data-adjust="mapYOffset" data-delta="-1">−</button>
+                <input type="range" min="-100" max="100" step="1" value="30" data-setting="mapYOffset">
+                <button type="button" data-adjust="mapYOffset" data-delta="1">+</button>
+                <output data-output="mapYOffset">30</output>
+              </label>
             </div>
             <div class="settings-actions" style="margin-top: 12px;">
               <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">Reset Map Params</button>
