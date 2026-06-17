@@ -10,44 +10,53 @@
     <main class="app">
       <header class="topbar">
         <div>
-          <h1>世界時間</h1>
-          <p id="nowText">正在讀取目前時間</p>
+          <h1 data-i18n="title">世界時間</h1>
+          <p id="nowText" data-i18n="nowTextLoading">正在讀取目前時間</p>
         </div>
         <div class="top-actions">
-          <button id="settingsButton" class="icon-button" type="button" title="地圖設定" aria-label="地圖設定" aria-expanded="false">
+          <button id="settingsButton" class="icon-button" type="button" title="地圖設定" aria-label="地圖設定" aria-expanded="false" data-i18n-title="mapSettings" data-i18n-aria-label="mapSettings">
             <span aria-hidden="true">⚙</span>
           </button>
-          <button id="resetButton" class="icon-button" type="button" title="重設城市" aria-label="重設城市">
+          <button id="resetButton" class="icon-button" type="button" title="重設城市" aria-label="重設城市" data-i18n-title="resetCities" data-i18n-aria-label="resetCities">
             <span aria-hidden="true">↺</span>
           </button>
         </div>
       </header>
 
-      <section id="settingsPanel" class="settings-panel" aria-label="地圖參數設定" hidden>
+      <section id="settingsPanel" class="settings-panel" aria-label="地圖參數設定" data-i18n-aria-label="mapParams" hidden>
+        <div class="settings-top">
+          <label class="lang-control">
+            <span data-i18n="language">語言</span>
+            <select id="langSelect">
+              <option value="zh">繁體中文</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+        </div>
         <div class="settings-grid">
           <label class="setting-control">
-            <span>經度</span>
+            <span data-i18n="longitude">經度</span>
             <button type="button" data-adjust="lngOffset" data-delta="-1">−</button>
             <input type="range" min="-40" max="40" step="1" data-setting="lngOffset">
             <button type="button" data-adjust="lngOffset" data-delta="1">+</button>
             <output data-output="lngOffset">0</output>
           </label>
           <label class="setting-control">
-            <span>緯度</span>
+            <span data-i18n="latitude">緯度</span>
             <button type="button" data-adjust="latOffset" data-delta="-1">−</button>
             <input type="range" min="-40" max="40" step="1" data-setting="latOffset">
             <button type="button" data-adjust="latOffset" data-delta="1">+</button>
             <output data-output="latOffset">0</output>
           </label>
           <label class="setting-control">
-            <span>寬度</span>
+            <span data-i18n="width">寬度</span>
             <button type="button" data-adjust="widthScale" data-delta="-0.01">−</button>
             <input type="range" min="0.50" max="1.50" step="0.01" data-setting="widthScale">
             <button type="button" data-adjust="widthScale" data-delta="0.01">+</button>
             <output data-output="widthScale">1.00</output>
           </label>
           <label class="setting-control">
-            <span>高度</span>
+            <span data-i18n="height">高度</span>
             <button type="button" data-adjust="heightScale" data-delta="-0.01">−</button>
             <input type="range" min="0.50" max="1.50" step="0.01" data-setting="heightScale">
             <button type="button" data-adjust="heightScale" data-delta="0.01">+</button>
@@ -55,15 +64,15 @@
           </label>
         </div>
         <div class="custom-city-panel">
-          <h2>自訂城市</h2>
+          <h2 data-i18n="customCity">自訂城市</h2>
           <div class="custom-city-form">
             <label>
-              <span>名稱</span>
-              <input id="customCityName" type="text" placeholder="例如：香港" maxlength="20">
+              <span data-i18n="cityName">名稱</span>
+              <input id="customCityName" type="text" placeholder="例如：香港" data-i18n-placeholder="cityNamePlaceholder" maxlength="20">
             </label>
             <label>
-              <span>時區</span>
-              <input id="customCityZone" type="text" placeholder="例如：Asia/Hong_Kong" maxlength="40">
+              <span data-i18n="timezone">時區</span>
+              <input id="customCityZone" type="text" placeholder="例如：Asia/Hong_Kong" data-i18n-placeholder="timezonePlaceholder" maxlength="40">
             </label>
             <label>
               <span>X</span>
@@ -73,31 +82,32 @@
               <span>Y</span>
               <input id="customCityY" type="number" min="0" max="100" step="0.1" value="50">
             </label>
-            <button id="addCustomCityButton" class="text-button" type="button">新增城市</button>
+            <button id="addCustomCityButton" class="text-button" type="button" data-i18n="addCity">新增城市</button>
           </div>
           <div id="customCityList" class="custom-city-list" aria-label="自訂城市列表"></div>
         </div>
-        <button id="resetMapButton" class="text-button" type="button">重設地圖參數</button>
+        <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">重設地圖參數</button>
       </section>
 
-      <section class="map-panel" aria-label="世界小地圖">
+      <section class="map-panel" aria-label="世界小地圖" data-i18n-aria-label="worldMapAlt">
         <div class="map-shell">
-          <img class="world-map" src="assets/world-map.jpg" alt="淡藍色點陣世界地圖">
+          <img class="world-map" src="assets/world-map.jpg" alt="淡藍色點陣世界地圖" data-i18n-alt="worldMapAlt">
           <div class="time-zone-lines" aria-hidden="true"></div>
           <div id="cityLayer" class="city-layer" aria-label="城市選擇"></div>
         </div>
-        <div id="cityChips" class="city-chips" aria-label="已選城市"></div>
+        <div id="cityChips" class="city-chips" aria-label="已選城市" data-i18n-aria-label="selectedCities"></div>
       </section>
 
       <section class="timeline-panel" aria-label="24 小時時間軸">
         <div class="timeline-head">
-          <span>城市</span>
+          <span data-i18n="city">城市</span>
           <div id="hourHeader" class="hour-header" aria-hidden="true"></div>
         </div>
         <div id="timelineRows" class="timeline-rows"></div>
         <div id="hoverGuide" class="hover-guide" aria-hidden="true"></div>
       </section>
     </main>
+    <script src="i18n.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

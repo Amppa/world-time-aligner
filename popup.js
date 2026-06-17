@@ -58,6 +58,71 @@ const customCityX = document.querySelector("#customCityX");
 const customCityY = document.querySelector("#customCityY");
 const addCustomCityButton = document.querySelector("#addCustomCityButton");
 const customCityList = document.querySelector("#customCityList");
+const langSelect = document.querySelector("#langSelect");
+
+const languageKey = "worldTimeAlignerLanguage";
+let currentLang = loadLanguage();
+
+function loadLanguage() {
+  try {
+    const saved = localStorage.getItem(languageKey);
+    if (saved === "zh" || saved === "en") return saved;
+  } catch {}
+  const navLang = navigator.language || navigator.userLanguage || "zh";
+  return navLang.toLowerCase().startsWith("en") ? "en" : "zh";
+}
+
+function saveLanguage(lang) {
+  try {
+    localStorage.setItem(languageKey, lang);
+  } catch {}
+}
+
+function getTranslation(key, params = {}) {
+  let text = (typeof i18nTranslations !== "undefined" && i18nTranslations[currentLang]?.[key]) || "";
+  for (const [pKey, pVal] of Object.entries(params)) {
+    text = text.replace(`{${pKey}}`, pVal);
+  }
+  return text;
+}
+
+function getCityName(city) {
+  if (!city) return "";
+  if (city.id.startsWith("custom-")) {
+    return city.name;
+  }
+  return (typeof i18nCityNames !== "undefined" && i18nCityNames[currentLang]?.[city.id]) || city.name;
+}
+
+function applyLanguage() {
+  document.querySelectorAll("[data-i18n]").forEach((elem) => {
+    const key = elem.dataset.i18n;
+    if (i18nTranslations[currentLang]?.[key]) {
+      elem.textContent = i18nTranslations[currentLang][key];
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((elem) => {
+    const key = elem.dataset.i18nPlaceholder;
+    if (i18nTranslations[currentLang]?.[key]) {
+      elem.placeholder = i18nTranslations[currentLang][key];
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((elem) => {
+    const key = elem.dataset.i18nTitle;
+    if (i18nTranslations[currentLang]?.[key]) {
+      elem.title = i18nTranslations[currentLang][key];
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((elem) => {
+    const key = elem.dataset.i18nAriaLabel;
+    if (i18nTranslations[currentLang]?.[key]) {
+      elem.setAttribute("aria-label", i18nTranslations[currentLang][key]);
+    }
+  });
+}
 
 let selectedIds = loadSelection();
 let mapSettings = loadMapSettings();
@@ -155,7 +220,8 @@ function mapPosition(city) {
 }
 
 function formatTime(date, zone, options = {}) {
-  return new Intl.DateTimeFormat("zh-TW", {
+  const locale = currentLang === "zh" ? "zh-TW" : "en-US";
+  return new Intl.DateTimeFormat(locale, {
     timeZone: zone,
     hour: "2-digit",
     minute: options.withMinutes === false ? undefined : "2-digit",
@@ -214,8 +280,9 @@ function renderMap() {
     button.className = `city-pin${selectedIds.includes(city.id) ? " is-selected" : ""}`;
     button.style.left = `${position.x}%`;
     button.style.top = `${position.y}%`;
-    button.title = city.name;
-    button.setAttribute("aria-label", `選擇 ${city.name}`);
+    const cityName = getCityName(city);
+    button.title = cityName;
+    button.setAttribute("aria-label", getTranslation("selectCity", { name: cityName }));
     button.addEventListener("click", () => toggleCity(city.id));
     cityLayer.append(button);
   });
@@ -314,13 +381,14 @@ function renderChips() {
     if (!city) return;
     const chip = document.createElement("span");
     chip.className = "chip";
-    chip.textContent = `${city.name} ${utcOffsetText(new Date(), city.zone)} ${formatTime(new Date(), city.zone)}`;
+    const cityName = getCityName(city);
+    chip.textContent = `${cityName} ${utcOffsetText(new Date(), city.zone)} ${formatTime(new Date(), city.zone)}`;
 
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = "×";
-    remove.title = `移除 ${city.name}`;
-    remove.setAttribute("aria-label", `移除 ${city.name}`);
+    remove.title = getTranslation("removeCity", { name: cityName });
+    remove.setAttribute("aria-label", getTranslation("removeCity", { name: cityName }));
     remove.addEventListener("click", () => toggleCity(city.id));
     chip.append(remove);
     cityChips.append(chip);
@@ -347,16 +415,17 @@ function renderRows() {
     const label = document.createElement("div");
     label.className = "city-label";
 
+    const cityName = getCityName(city);
     const labelText = document.createElement("div");
     labelText.className = "city-label-text";
-    labelText.innerHTML = `<span class="city-name">${city.name}</span><span class="city-time">${utcOffsetText(new Date(), city.zone)} · ${formatTime(new Date(), city.zone)}</span>`;
+    labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${utcOffsetText(new Date(), city.zone)} · ${formatTime(new Date(), city.zone)}</span>`;
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.className = "remove-city-btn";
     removeBtn.textContent = "×";
-    removeBtn.title = `移除 ${city.name}`;
-    removeBtn.setAttribute("aria-label", `移除 ${city.name}`);
+    removeBtn.title = getTranslation("removeCity", { name: cityName });
+    removeBtn.setAttribute("aria-label", getTranslation("removeCity", { name: cityName }));
     removeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleCity(city.id);
@@ -373,7 +442,7 @@ function renderRows() {
       cell.className = `hour-cell ${timeTone(cityHour)}${index === 0 ? " is-now" : ""}`;
       cell.dataset.index = String(index);
       cell.textContent = String(cityHour).padStart(2, "0");
-      cell.title = `${city.name} ${formatTime(date, city.zone)}`;
+      cell.title = `${cityName} ${formatTime(date, city.zone)}`;
       hours.append(cell);
     });
 
@@ -403,8 +472,8 @@ function renderCustomCityEditor() {
       <input data-field="zone" value="${city.zone.replaceAll('"', "&quot;")}">
       <input data-field="x" type="number" min="0" max="100" step="0.1" value="${city.x}">
       <input data-field="y" type="number" min="0" max="100" step="0.1" value="${city.y}">
-      <button type="button">更新</button>
-      <button type="button">刪除</button>
+      <button type="button">${getTranslation("updateBtn")}</button>
+      <button type="button">${getTranslation("deleteBtn")}</button>
     `;
 
     const inputs = item.querySelectorAll("input");
@@ -468,7 +537,7 @@ function wireTimelineHover() {
 
 function renderNowText() {
   const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  nowText.textContent = `本機時區 ${localZone} · ${formatTime(new Date(), localZone, { weekday: true })}`;
+  nowText.textContent = `${getTranslation("localTimezone")} ${localZone} · ${formatTime(new Date(), localZone, { weekday: true })}`;
 }
 
 function render() {
@@ -478,6 +547,7 @@ function render() {
   renderChips();
   renderHeader();
   renderRows();
+  renderCustomCityEditor();
 }
 
 resetButton.addEventListener("click", () => {
@@ -489,6 +559,15 @@ resetButton.addEventListener("click", () => {
 wireSettings();
 wireTimelineHover();
 renderSettingsControls();
-renderCustomCityEditor();
+
+langSelect.value = currentLang;
+langSelect.addEventListener("change", (e) => {
+  currentLang = e.target.value;
+  saveLanguage(currentLang);
+  applyLanguage();
+  render();
+});
+
+applyLanguage();
 render();
 setInterval(render, 60 * 1000);
