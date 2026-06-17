@@ -17,16 +17,13 @@
           <button id="settingsButton" class="icon-button" type="button" title="地圖設定" aria-label="地圖設定" aria-expanded="false" data-i18n-title="mapSettings" data-i18n-aria-label="mapSettings">
             <span aria-hidden="true">⚙</span>
           </button>
-          <button id="resetButton" class="icon-button" type="button" title="重設城市" aria-label="重設城市" data-i18n-title="resetCities" data-i18n-aria-label="resetCities">
-            <span aria-hidden="true">↺</span>
-          </button>
         </div>
       </header>
 
       <section id="settingsPanel" class="settings-panel" aria-label="地圖參數設定" data-i18n-aria-label="mapParams" hidden>
         <div class="settings-top">
           <label class="lang-control">
-            <span data-i18n="language">語言</span>
+            <span data-i18n="language">Language</span>
             <select id="langSelect">
               <option value="zh">繁體中文</option>
               <option value="en">English</option>
@@ -145,7 +142,10 @@
             </div>
           </div>
         </div>
-        <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">重設地圖參數</button>
+        <div class="settings-actions">
+          <button id="resetButton" class="text-button" type="button" data-i18n="resetCities">重設城市</button>
+          <button id="resetMapButton" class="text-button" type="button" data-i18n="resetMapParams">重設地圖參數</button>
+        </div>
       </section>
 
       <section class="map-panel" aria-label="世界小地圖" data-i18n-aria-label="worldMapAlt">

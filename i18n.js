@@ -19,7 +19,7 @@ const i18nTranslations = {
     city: "城市",
     updateBtn: "更新",
     deleteBtn: "刪除",
-    language: "語言",
+    language: "Language",
     localTimezone: "本機時區",
     removeCity: "移除 {name}",
     selectCity: "選擇 {name}",
