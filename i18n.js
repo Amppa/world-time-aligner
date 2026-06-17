@@ -34,7 +34,9 @@ const i18nTranslations = {
     customCitySection: "3. 手動新增城市",
     timePeriodSection: "4. 時段設定",
     resetTimePeriods: "預設時段顏色",
-    resetCitiesBtn: "預設城市"
+    resetCitiesBtn: "預設城市",
+    langZh: "繁體中文",
+    langEn: "English"
   },
   en: {
     title: "World Time",
@@ -71,7 +73,9 @@ const i18nTranslations = {
     customCitySection: "3. Custom Cities",
     timePeriodSection: "4. Time Period Settings",
     resetTimePeriods: "Reset Time Period Colors",
-    resetCitiesBtn: "Reset Cities"
+    resetCitiesBtn: "Reset Cities",
+    langZh: "Traditional Chinese",
+    langEn: "English"
   }
 };
 
