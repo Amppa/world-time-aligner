@@ -200,17 +200,12 @@ const TimeUtils = {
     }
   },
 
-  getHourStyle(hour) {
-    const period = State.timePeriods.find((p) => {
-      if (p.start <= p.end) {
-        return hour >= p.start && hour <= p.end;
-      } else {
-        return hour >= p.start || hour <= p.end;
-      }
-    });
-    return period || State.timePeriods[2];
-  },
+};
 
+// ==========================================
+// 3b. I18N UTILITIES
+// ==========================================
+const I18nUtils = {
   getTranslation(key, params = {}) {
     let text = (typeof i18nTranslations !== "undefined" && i18nTranslations[State.currentLang]?.[key]) || "";
     for (const [pKey, pVal] of Object.entries(params)) {
@@ -225,12 +220,22 @@ const TimeUtils = {
       return city.name;
     }
     return (typeof i18nCityNames !== "undefined" && i18nCityNames[State.currentLang]?.[city.id]) || city.id;
-  },
+  }
+};
 
-  timeTone(hour) {
-    if (hour >= 8 && hour < 18) return "day";
-    if ((hour >= 6 && hour < 8) || (hour >= 18 && hour < 22)) return "evening";
-    return "night";
+// ==========================================
+// 3c. TIME PERIOD UTILITIES
+// ==========================================
+const PeriodUtils = {
+  getHourStyle(hour) {
+    const period = State.timePeriods.find((p) => {
+      if (p.start <= p.end) {
+        return hour >= p.start && hour <= p.end;
+      } else {
+        return hour >= p.start || hour <= p.end;
+      }
+    });
+    return period || State.timePeriods[2];
   }
 };
 
@@ -471,9 +476,9 @@ const Renderer = {
       button.className = `city-pin${State.selectedIds.includes(city.id) ? " is-selected" : ""}`;
       button.style.left = `${position.x}%`;
       button.style.top = `${position.y}%`;
-      const cityName = TimeUtils.getCityName(city);
+      const cityName = I18nUtils.getCityName(city);
       button.title = cityName;
-      button.setAttribute("aria-label", TimeUtils.getTranslation("selectCity", { name: cityName }));
+      button.setAttribute("aria-label", I18nUtils.getTranslation("selectCity", { name: cityName }));
       button.addEventListener("click", () => State.toggleCity(city.id));
       DOM.cityLayer.append(button);
     });
@@ -517,18 +522,18 @@ const Renderer = {
       const label = document.createElement("div");
       label.className = "city-label";
 
-      const cityName = TimeUtils.getCityName(city);
+      const cityName = I18nUtils.getCityName(city);
       const labelText = document.createElement("div");
       labelText.className = "city-label-text";
-      const dstSuffix = TimeUtils.isCurrentlyDST(city.zone) ? ` ${TimeUtils.getTranslation("dstLabel")}` : "";
+      const dstSuffix = TimeUtils.isCurrentlyDST(city.zone) ? ` ${I18nUtils.getTranslation("dstLabel")}` : "";
       labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}${dstSuffix}</span>`;
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.className = "remove-city-btn";
       removeBtn.textContent = "×";
-      removeBtn.title = TimeUtils.getTranslation("removeCity", { name: cityName });
-      removeBtn.setAttribute("aria-label", TimeUtils.getTranslation("removeCity", { name: cityName }));
+      removeBtn.title = I18nUtils.getTranslation("removeCity", { name: cityName });
+      removeBtn.setAttribute("aria-label", I18nUtils.getTranslation("removeCity", { name: cityName }));
       removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         State.toggleCity(city.id);
@@ -547,7 +552,7 @@ const Renderer = {
         cell.textContent = String(cityHour).padStart(2, "0");
         cell.title = `${cityName} ${TimeUtils.formatTime(date, city.zone)}`;
 
-        const styleInfo = TimeUtils.getHourStyle(cityHour);
+        const styleInfo = PeriodUtils.getHourStyle(cityHour);
         cell.style.backgroundColor = styleInfo.color;
         cell.style.color = styleInfo.fontColor;
 
@@ -569,8 +574,8 @@ const Renderer = {
         <input data-field="zone" value="${city.zone.replaceAll('"', "&quot;")}">
         <input data-field="x" type="number" min="0" max="100" step="0.1" value="${city.x}">
         <input data-field="y" type="number" min="0" max="100" step="0.1" value="${city.y}">
-        <button type="button">${TimeUtils.getTranslation("updateBtn")}</button>
-        <button type="button">${TimeUtils.getTranslation("deleteBtn")}</button>
+        <button type="button">${I18nUtils.getTranslation("updateBtn")}</button>
+        <button type="button">${I18nUtils.getTranslation("deleteBtn")}</button>
       `;
 
       const inputs = item.querySelectorAll("input");
@@ -702,7 +707,26 @@ const Renderer = {
     this.renderRows();
     this.renderCustomCityEditor();
     this.renderPeriodSettings();
-    AppController.updatePinState();
+    this.updatePinState();
+  },
+
+  positionHoverGuideToOffset(offsetHours) {
+    const hourGrid = DOM.hourHeader || document.querySelector(".hours");
+    if (!hourGrid) return;
+    const gridRect = hourGrid.getBoundingClientRect();
+    const panelRect = DOM.timelinePanel.getBoundingClientRect();
+    const relativeX = (offsetHours / 24) * gridRect.width;
+    const left = gridRect.left - panelRect.left + relativeX;
+    DOM.hoverGuide.style.left = `${left}px`;
+  },
+
+  updatePinState() {
+    if (State.selectedOffsetHours !== null) {
+      DOM.timelinePanel.classList.add("has-pin");
+      this.positionHoverGuideToOffset(State.selectedOffsetHours);
+    } else {
+      DOM.timelinePanel.classList.remove("has-pin");
+    }
   }
 };
 
@@ -756,7 +780,7 @@ const AppController = {
     Renderer.renderCustomCityEditor();
   },
 
-  wireSettings() {
+  wireMapSettings() {
     DOM.settingsButton.addEventListener("click", () => {
       const isOpen = DOM.settingsPanel.hidden;
       DOM.settingsPanel.hidden = !isOpen;
@@ -793,89 +817,95 @@ const AppController = {
         Renderer.render();
       });
     }
+  },
 
-    if (DOM.searchCityButton) {
-      document.addEventListener("click", (e) => {
-        if (DOM.searchSuggestions && !DOM.searchSuggestions.contains(e.target) && e.target !== DOM.customCityName && e.target !== DOM.searchCityButton) {
+  fetchCityResults(query) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
+    return fetch(url).then((res) => res.json());
+  },
+
+  fillCityForm(result) {
+    DOM.customCityName.value = result.name;
+    DOM.customCityZone.value = result.timezone || "";
+    const cx = 0.2816 * result.longitude + 46.2357;
+    const cy = -0.5257 * result.latitude + 63.3239;
+    DOM.customCityX.value = cx.toFixed(1);
+    DOM.customCityY.value = cy.toFixed(1);
+  },
+
+  wireCitySearch() {
+    if (!DOM.searchCityButton) return;
+
+    document.addEventListener("click", (e) => {
+      if (DOM.searchSuggestions && !DOM.searchSuggestions.contains(e.target) && e.target !== DOM.customCityName && e.target !== DOM.searchCityButton) {
+        DOM.searchSuggestions.hidden = true;
+      }
+    });
+
+    if (DOM.customCityName) {
+      DOM.customCityName.addEventListener("input", () => {
+        if (DOM.searchSuggestions) {
           DOM.searchSuggestions.hidden = true;
         }
       });
+    }
 
-      if (DOM.customCityName) {
-        DOM.customCityName.addEventListener("input", () => {
-          if (DOM.searchSuggestions) {
-            DOM.searchSuggestions.hidden = true;
-          }
-        });
-      }
+    DOM.searchCityButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const query = DOM.customCityName.value.trim();
+      if (!query) return;
 
-      DOM.searchCityButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const query = DOM.customCityName.value.trim();
-        if (!query) return;
+      DOM.searchCityButton.textContent = "⏳";
+      DOM.searchCityButton.style.pointerEvents = "none";
+      DOM.searchSuggestions.hidden = true;
+      DOM.searchSuggestions.innerHTML = "";
 
-        DOM.searchCityButton.textContent = "⏳";
-        DOM.searchCityButton.style.pointerEvents = "none";
-        DOM.searchSuggestions.hidden = true;
-        DOM.searchSuggestions.innerHTML = "";
+      this.fetchCityResults(query)
+        .then((data) => {
+          if (data && data.results && data.results.length > 0) {
+            if (data.results.length === 1) {
+              this.fillCityForm(data.results[0]);
+            } else {
+              DOM.searchSuggestions.innerHTML = "";
+              data.results.forEach((result) => {
+                const item = document.createElement("div");
+                item.className = "suggestion-item";
 
-        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data && data.results && data.results.length > 0) {
-              if (data.results.length === 1) {
-                const result = data.results[0];
-                DOM.customCityName.value = result.name;
-                DOM.customCityZone.value = result.timezone || "";
-                const cx = 0.2816 * result.longitude + 46.2357;
-                const cy = -0.5257 * result.latitude + 63.3239;
-                DOM.customCityX.value = cx.toFixed(1);
-                DOM.customCityY.value = cy.toFixed(1);
-              } else {
-                DOM.searchSuggestions.innerHTML = "";
-                data.results.forEach((result) => {
-                  const item = document.createElement("div");
-                  item.className = "suggestion-item";
-                  
-                  const subtitleParts = [];
-                  if (result.country) subtitleParts.push(result.country);
-                  if (result.admin1) subtitleParts.push(result.admin1);
-                  const subtitleText = subtitleParts.length > 0 ? ` (${subtitleParts.join(", ")})` : "";
-                  
-                  item.innerHTML = `
+                const subtitleParts = [];
+                if (result.country) subtitleParts.push(result.country);
+                if (result.admin1) subtitleParts.push(result.admin1);
+                const subtitleText = subtitleParts.length > 0 ? ` (${subtitleParts.join(", ")})` : "";
+
+                item.innerHTML = `
                     <div class="suggestion-title">${result.name}${subtitleText}</div>
                     <div class="suggestion-subtitle">${result.timezone || ""}</div>
                   `;
-                  
-                  item.addEventListener("click", (evt) => {
-                    evt.stopPropagation();
-                    DOM.customCityName.value = result.name;
-                    DOM.customCityZone.value = result.timezone || "";
-                    const cx = 0.2816 * result.longitude + 46.2357;
-                    const cy = -0.5257 * result.latitude + 63.3239;
-                    DOM.customCityX.value = cx.toFixed(1);
-                    DOM.customCityY.value = cy.toFixed(1);
-                    DOM.searchSuggestions.hidden = true;
-                  });
-                  DOM.searchSuggestions.append(item);
-                });
-                DOM.searchSuggestions.hidden = false;
-              }
-            } else {
-              alert(TimeUtils.getTranslation("cityNotFound") || "City not found");
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            alert("Network error. Please try again.");
-          })
-          .finally(() => {
-            DOM.searchCityButton.textContent = "🔍";
-            DOM.searchCityButton.style.pointerEvents = "auto";
-          });
-      });
-    }
 
+                item.addEventListener("click", (evt) => {
+                  evt.stopPropagation();
+                  this.fillCityForm(result);
+                  DOM.searchSuggestions.hidden = true;
+                });
+                DOM.searchSuggestions.append(item);
+              });
+              DOM.searchSuggestions.hidden = false;
+            }
+          } else {
+            alert(I18nUtils.getTranslation("cityNotFound") || "City not found");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Network error. Please try again.");
+        })
+        .finally(() => {
+          DOM.searchCityButton.textContent = "🔍";
+          DOM.searchCityButton.style.pointerEvents = "auto";
+        });
+    });
+  },
+
+  wireCustomCityForm() {
     DOM.addCustomCityButton.addEventListener("click", () => {
       const name = DOM.customCityName.value.trim();
       const zone = DOM.customCityZone.value.trim();
@@ -903,24 +933,12 @@ const AppController = {
     });
   },
 
-  positionHoverGuideToOffset(offsetHours) {
-    const hourGrid = DOM.hourHeader || document.querySelector(".hours");
-    if (!hourGrid) return;
-    const gridRect = hourGrid.getBoundingClientRect();
-    const panelRect = DOM.timelinePanel.getBoundingClientRect();
-    const relativeX = (offsetHours / 24) * gridRect.width;
-    const left = gridRect.left - panelRect.left + relativeX;
-    DOM.hoverGuide.style.left = `${left}px`;
+  wireSettings() {
+    this.wireMapSettings();
+    this.wireCitySearch();
+    this.wireCustomCityForm();
   },
 
-  updatePinState() {
-    if (State.selectedOffsetHours !== null) {
-      DOM.timelinePanel.classList.add("has-pin");
-      this.positionHoverGuideToOffset(State.selectedOffsetHours);
-    } else {
-      DOM.timelinePanel.classList.remove("has-pin");
-    }
-  },
 
   wireTimelineHover() {
     DOM.timelinePanel.addEventListener("click", (event) => {
@@ -934,7 +952,7 @@ const AppController = {
       const clickedOffset = ((clampedX - gridRect.left) / gridRect.width) * 24;
 
       State.selectedOffsetHours = clickedOffset;
-      this.updatePinState();
+      Renderer.updatePinState();
       Renderer.renderDayNight(State.selectedOffsetHours);
     });
   },

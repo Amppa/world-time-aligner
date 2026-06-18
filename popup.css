@@ -286,6 +286,9 @@ h1 {
 }
 
 .timeline-panel {
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -421,11 +424,7 @@ h1 {
 }
 
 
-.timeline-panel {
-  position: relative;
-  overflow: hidden;
-  margin-top: 10px;
-}
+/* .timeline-panel 的完整樣式已合併至上方 */
 
 .timeline-head,
 .timeline-row {
