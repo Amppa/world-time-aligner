@@ -48,6 +48,7 @@ const DOM = {
   customCityX: document.querySelector("#customCityX"),
   customCityY: document.querySelector("#customCityY"),
   addCustomCityButton: document.querySelector("#addCustomCityButton"),
+  searchCityButton: document.querySelector("#searchCityButton"),
   customCityList: document.querySelector("#customCityList"),
   langSelect: document.querySelector("#langSelect"),
   mapImg: document.querySelector(".world-map"),
@@ -70,14 +71,36 @@ const MathUtils = {
 const TimeUtils = {
   resolveZone(zone) {
     if (!zone) return "";
+    const cleanInput = zone.trim().toLowerCase().replace(/[\s\-_]+/g, "");
+
+    // 1. Try case-insensitive and loose matching against browser supported zones
+    if (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function") {
+      try {
+        const supported = Intl.supportedValuesOf("timeZone");
+        // Look for exact match (ignoring case/spaces/hyphens/underscores)
+        let match = supported.find(tz => tz.toLowerCase().replace(/[\s\-_]+/g, "") === cleanInput);
+        if (match) return match;
+
+        // Look for shorthand match (e.g. "taipei" matches "Asia/Taipei")
+        match = supported.find(tz => {
+          const parts = tz.toLowerCase().split("/");
+          return parts[parts.length - 1].replace(/[\s\-_]+/g, "") === cleanInput;
+        });
+        if (match) return match;
+      } catch (e) { }
+    }
+
+    // 2. Direct validation fallback (handles UTC offsets, Etc/GMT, etc.)
     try {
       new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
       return zone;
     } catch { }
 
+    // 3. Compatibility fallback for older browsers
     const prefixes = ["Asia", "Europe", "America", "Australia", "Africa", "Pacific", "Atlantic", "Indian"];
+    const formatted = zone.trim().replace(/\s+/g, "_");
     for (const prefix of prefixes) {
-      const candidate = `${prefix}/${zone}`;
+      const candidate = `${prefix}/${formatted}`;
       try {
         new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format(new Date());
         return candidate;
@@ -770,6 +793,42 @@ const AppController = {
       });
     }
 
+    if (DOM.searchCityButton) {
+      DOM.searchCityButton.addEventListener("click", () => {
+        const query = DOM.customCityName.value.trim();
+        if (!query) return;
+
+        DOM.searchCityButton.textContent = "⏳";
+        DOM.searchCityButton.style.pointerEvents = "none";
+
+        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.results && data.results.length > 0) {
+              const result = data.results[0];
+              DOM.customCityZone.value = result.timezone || "";
+              
+              // Project coordinates to world-map.jpg coordinates
+              const cx = 0.2816 * result.longitude + 46.2357;
+              const cy = -0.5257 * result.latitude + 63.3239;
+              
+              DOM.customCityX.value = cx.toFixed(1);
+              DOM.customCityY.value = cy.toFixed(1);
+            } else {
+              alert(TimeUtils.getTranslation("cityNotFound") || "City not found");
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            alert("Network error. Please try again.");
+          })
+          .finally(() => {
+            DOM.searchCityButton.textContent = "🔍";
+            DOM.searchCityButton.style.pointerEvents = "auto";
+          });
+      });
+    }
+
     DOM.addCustomCityButton.addEventListener("click", () => {
       const name = DOM.customCityName.value.trim();
       const zone = DOM.customCityZone.value.trim();
@@ -777,21 +836,23 @@ const AppController = {
       const y = Number(DOM.customCityY.value);
       if (!name || !zone || !TimeUtils.isValidZone(zone)) return;
 
+      const newCity = {
+        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        zone,
+        x: MathUtils.clamp(x, 0, 100),
+        y: MathUtils.clamp(y, 0, 100)
+      };
+
       State.customCities = [
         ...State.customCities,
-        {
-          id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          name,
-          zone,
-          x: MathUtils.clamp(x, 0, 100),
-          y: MathUtils.clamp(y, 0, 100)
-        }
+        newCity
       ];
       State.saveCustomCities();
       DOM.customCityName.value = "";
       DOM.customCityZone.value = "";
+      State.toggleCity(newCity.id);
       Renderer.renderCustomCityEditor();
-      Renderer.render();
     });
   },
 

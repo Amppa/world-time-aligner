@@ -89,11 +89,14 @@
             <div class="custom-city-form">
               <label>
                 <span data-i18n="cityName">Name</span>
-                <input id="customCityName" type="text" placeholder="e.g. Hong Kong" data-i18n-placeholder="cityNamePlaceholder" maxlength="20">
+                <div style="display: flex; gap: 4px;">
+                  <input id="customCityName" type="text" placeholder="e.g. Hong Kong" data-i18n-placeholder="cityNamePlaceholder" maxlength="20" style="flex: 1; min-width: 0;">
+                  <button id="searchCityButton" type="button" style="padding: 0 8px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfa; cursor: pointer; color: var(--accent-dark); flex-shrink: 0;" title="Auto-fill timezone and coordinates">🔍</button>
+                </div>
               </label>
               <label>
                 <span data-i18n="timezone">Timezone</span>
-                <input id="customCityZone" type="text" placeholder="e.g. Hong_Kong" data-i18n-placeholder="timezonePlaceholder" maxlength="40">
+                <input id="customCityZone" type="text" placeholder="e.g. Asia/Hong_Kong" data-i18n-placeholder="timezonePlaceholder" maxlength="40">
               </label>
               <label>
                 <span>X</span>

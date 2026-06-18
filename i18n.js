@@ -10,10 +10,10 @@ const i18nTranslations = {
     mapYOffset: "地圖y偏移",
     dstLabel: "☀️",
     customCity: "自訂城市",
-    cityName: "名稱",
+    cityName: "城市名(英文)",
     cityNamePlaceholder: "例如：香港",
-    timezone: "時區",
-    timezonePlaceholder: "例如：Hong_Kong",
+    timezone: "IANA時區",
+    timezonePlaceholder: "例如：Asia/Hong_Kong",
     addCity: "新增城市",
     resetMapParams: "重設地圖參數",
     selectedCities: "已選城市",
@@ -38,7 +38,8 @@ const i18nTranslations = {
     clearAllBtn: "清除全部",
     worldMapTitle: "世界地圖",
     langZh: "繁體中文",
-    langEn: "English"
+    langEn: "English",
+    cityNotFound: "找不到該城市"
   },
   en: {
     nowTextLoading: "Loading current time...",
@@ -51,10 +52,10 @@ const i18nTranslations = {
     mapYOffset: "Map Y Offset",
     dstLabel: "☀️",
     customCity: "Custom City",
-    cityName: "Name",
+    cityName: "City Name (English)",
     cityNamePlaceholder: "e.g., Hong Kong",
-    timezone: "Timezone",
-    timezonePlaceholder: "e.g., Hong_Kong",
+    timezone: "IANA Timezone",
+    timezonePlaceholder: "e.g., Asia/Hong_Kong",
     addCity: "Add City",
     resetMapParams: "Reset Map Params",
     selectedCities: "Selected Cities",
@@ -79,7 +80,8 @@ const i18nTranslations = {
     clearAllBtn: "Clear All",
     worldMapTitle: "World Map",
     langZh: "Traditional Chinese",
-    langEn: "English"
+    langEn: "English",
+    cityNotFound: "City not found"
   }
 };
 
