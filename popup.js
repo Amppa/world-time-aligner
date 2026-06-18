@@ -6,13 +6,14 @@
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================
 const CONFIG = {
-  defaultSelection: ["taipei", "london", "new-york", "tokyo"],
+  defaultSelection: ["singapore", "new-york", "los-angeles"],
   maxCities: 6,
   storageKey: "worldTimeAlignerCities",
   mapSettingsKey: "worldTimeAlignerMapSettings_v4",
   customCitiesKey: "worldTimeAlignerCustomCities",
   timePeriodsKey: "worldTimeAlignerTimePeriods",
   languageKey: "worldTimeAlignerLanguage",
+  nowLineModeKey: "worldTimeAlignerNowLineMode",
   defaultMapSettings: {
     lngOffset: 1.0,
     latOffset: 20.7,
@@ -33,8 +34,9 @@ const CONFIG = {
 const DOM = {
   cityLayer: document.querySelector("#cityLayer"),
   timelineRows: document.querySelector("#timelineRows"),
-  hourHeader: document.querySelector("#hourHeader"),
-  hoverGuide: document.querySelector("#hoverGuide"),
+  nowLine: document.querySelector("#nowLine"),
+  scrubLine: document.querySelector("#scrubLine"),
+  scrubHandle: document.querySelector("#scrubHandle"),
   timelinePanel: document.querySelector(".timeline-panel"),
   nowText: document.querySelector("#nowText"),
   resetButton: document.querySelector("#resetButton"),
@@ -52,6 +54,7 @@ const DOM = {
   searchSuggestions: document.querySelector("#searchSuggestions"),
   customCityList: document.querySelector("#customCityList"),
   langSelect: document.querySelector("#langSelect"),
+  nowLineModeSelect: document.querySelector("#nowLineModeSelect"),
   mapImg: document.querySelector(".world-map"),
   mapShell: document.querySelector(".map-shell"),
   timezoneHoverBar: document.querySelector("#timezoneHoverBar"),
@@ -265,6 +268,66 @@ const MapUtils = {
 };
 
 // ==========================================
+// 3d. TIMELINE COORDINATE UTILITIES
+// ==========================================
+const TimelineUtils = {
+  /**
+   * Returns the current "time of day" as a fraction (0.0 ~ 1.0) on the
+   * first city's 0-24 hr axis.
+   * - 'local' mode: uses browser local time-of-day
+   * - 'firstCity' mode: uses first city's local time-of-day
+   */
+  getNowFraction() {
+    const now = new Date();
+    let hours, minutes;
+
+    if (State.nowLineMode === "firstCity" && State.selectedIds.length > 0) {
+      const firstCity = State.findCity(State.selectedIds[0]);
+      if (firstCity) {
+        const zone = TimeUtils.resolveZone(firstCity.zone);
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: zone,
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23"
+        }).formatToParts(now);
+        hours = Number(parts.find((p) => p.type === "hour").value);
+        minutes = Number(parts.find((p) => p.type === "minute").value);
+      } else {
+        hours = now.getHours();
+        minutes = now.getMinutes();
+      }
+    } else {
+      // Default: browser local time
+      hours = now.getHours();
+      minutes = now.getMinutes();
+    }
+
+    return (hours + minutes / 60) / 24;
+  },
+
+  /** Returns the pixel left-offset (relative to .timeline-panel) for a given 0~1 fraction */
+  fractionToLeft(fraction) {
+    const hoursEl = document.querySelector(".timeline-row .hours");
+    if (!hoursEl || !DOM.timelinePanel) return 0;
+    const gridRect = hoursEl.getBoundingClientRect();
+    const panelRect = DOM.timelinePanel.getBoundingClientRect();
+    const gridLeft = gridRect.left - panelRect.left;
+    return gridLeft + fraction * gridRect.width;
+  },
+
+  /** Converts a pixel x (relative to .timeline-panel left) into a 0~1 fraction */
+  leftToFraction(pxLeft) {
+    const hoursEl = document.querySelector(".timeline-row .hours");
+    if (!hoursEl || !DOM.timelinePanel) return 0;
+    const gridRect = hoursEl.getBoundingClientRect();
+    const panelRect = DOM.timelinePanel.getBoundingClientRect();
+    const gridLeft = gridRect.left - panelRect.left;
+    return MathUtils.clamp((pxLeft - gridLeft) / gridRect.width, 0, 1);
+  }
+};
+
+// ==========================================
 // 4. APPLICATION STATE MANAGEMENT
 // ==========================================
 const State = {
@@ -275,6 +338,8 @@ const State = {
   currentLang: "zh",
   baseHours: [],
   selectedOffsetHours: null,
+  nowLineMode: "local",   // 'local' | 'firstCity'
+  scrubFraction: null,    // 0.0 ~ 1.0 position on 0-24hr axis, null = follow now
 
   init() {
     this.currentLang = this.loadLanguage();
@@ -282,7 +347,9 @@ const State = {
     this.mapSettings = this.loadMapSettings();
     this.customCities = this.loadCustomCities();
     this.selectedIds = this.loadSelection();
+    this.nowLineMode = this.loadNowLineMode();
     this.selectedOffsetHours = null;
+    this.scrubFraction = null;
     this.makeBaseHours();
   },
 
@@ -389,15 +456,46 @@ const State = {
     return this.allCities().find((city) => city.id === id);
   },
 
+  loadNowLineMode() {
+    try {
+      const saved = localStorage.getItem(CONFIG.nowLineModeKey);
+      if (saved === "local" || saved === "firstCity") return saved;
+    } catch { }
+    return "local";
+  },
+
+  saveNowLineMode(mode) {
+    this.nowLineMode = mode;
+    try {
+      localStorage.setItem(CONFIG.nowLineModeKey, mode);
+    } catch { }
+  },
+
   makeBaseHours() {
     const now = new Date();
-    const start = new Date(now);
-    start.setMinutes(0, 0, 0);
-    this.baseHours = Array.from({ length: 24 }, (_, index) => {
-      const date = new Date(start);
-      date.setHours(start.getHours() + index);
-      return date;
-    });
+    const firstCity = this.selectedIds.length > 0 ? this.findCity(this.selectedIds[0]) : null;
+
+    if (firstCity && firstCity.zone) {
+      const zone = TimeUtils.resolveZone(firstCity.zone);
+      // Get today's date string in first city's timezone (YYYY-MM-DD via en-CA locale)
+      const dateStr = new Intl.DateTimeFormat("en-CA", {
+        timeZone: zone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(now);
+      const [year, month, day] = dateStr.split("-").map(Number);
+      // Use UTC offset at noon to avoid DST edge-cases within a single day
+      const noonUTC = new Date(Date.UTC(year, month - 1, day, 12));
+      const offsetMins = TimeUtils.getOffsetMinutes(noonUTC, zone);
+      const midnightUTC = Date.UTC(year, month - 1, day, 0) - offsetMins * 60000;
+      this.baseHours = Array.from({ length: 24 }, (_, i) => new Date(midnightUTC + i * 3600000));
+    } else {
+      // Fallback: browser local midnight
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      this.baseHours = Array.from({ length: 24 }, (_, i) => new Date(start.getTime() + i * 3600000));
+    }
   },
 
   toggleCity(id) {
@@ -499,15 +597,6 @@ const Renderer = {
     document.querySelectorAll("[data-output]").forEach((output) => {
       const key = output.dataset.output;
       output.textContent = this.formatSettingValue(key);
-    });
-  },
-
-  renderHeader() {
-    DOM.hourHeader.innerHTML = "";
-    State.baseHours.forEach((date) => {
-      const label = document.createElement("span");
-      label.textContent = String(date.getHours()).padStart(2, "0");
-      DOM.hourHeader.append(label);
     });
   },
 
@@ -702,33 +791,49 @@ const Renderer = {
     this.renderNowText();
     this.renderMap();
     this.renderTimezoneLines();
-    this.renderDayNight(State.selectedOffsetHours || 0);
-    this.renderHeader();
     this.renderRows();
     this.renderCustomCityEditor();
     this.renderPeriodSettings();
-    this.updatePinState();
+    // Render lines after layout is established
+    this.renderNowLine();
+    this.renderScrubLine();
+    this.renderDayNight(State.selectedOffsetHours || 0);
   },
 
-  positionHoverGuideToOffset(offsetHours) {
-    const hourGrid = DOM.hourHeader || document.querySelector(".hours");
-    if (!hourGrid) return;
-    const gridRect = hourGrid.getBoundingClientRect();
-    const panelRect = DOM.timelinePanel.getBoundingClientRect();
-    const relativeX = (offsetHours / 24) * gridRect.width;
-    const left = gridRect.left - panelRect.left + relativeX;
-    DOM.hoverGuide.style.left = `${left}px`;
-  },
-
-  updatePinState() {
-    if (State.selectedOffsetHours !== null) {
-      DOM.timelinePanel.classList.add("has-pin");
-      this.positionHoverGuideToOffset(State.selectedOffsetHours);
-    } else {
-      DOM.timelinePanel.classList.remove("has-pin");
+  renderNowLine() {
+    if (!DOM.nowLine) return;
+    const fraction = TimelineUtils.getNowFraction();
+    const left = TimelineUtils.fractionToLeft(fraction);
+    if (left === 0) {
+      DOM.nowLine.style.display = "none";
+      return;
     }
+    DOM.nowLine.style.display = "";
+    DOM.nowLine.style.left = `${left}px`;
+  },
+
+  renderScrubLine() {
+    if (!DOM.scrubLine || !DOM.scrubHandle) return;
+    // If scrubFraction is null, snap to now
+    if (State.scrubFraction === null) {
+      State.scrubFraction = TimelineUtils.getNowFraction();
+    }
+    const left = TimelineUtils.fractionToLeft(State.scrubFraction);
+    if (left === 0) {
+      DOM.scrubLine.style.display = "none";
+      DOM.scrubHandle.style.display = "none";
+      return;
+    }
+    DOM.scrubLine.style.display = "";
+    DOM.scrubHandle.style.display = "";
+    DOM.scrubLine.style.left = `${left}px`;
+    DOM.scrubHandle.style.left = `${left}px`;
+    // Compute day-night offset relative to real now
+    const nowFraction = TimelineUtils.getNowFraction();
+    State.selectedOffsetHours = (State.scrubFraction - nowFraction) * 24;
   }
 };
+
 
 // ==========================================
 // 6. EVENT CONTROLLERS
@@ -939,21 +1044,50 @@ const AppController = {
     this.wireCustomCityForm();
   },
 
+  wireScrubLine() {
+    if (!DOM.scrubHandle || !DOM.scrubLine) return;
+    let isDragging = false;
 
-  wireTimelineHover() {
-    DOM.timelinePanel.addEventListener("click", (event) => {
-      const cell = event.target.closest(".hour-cell, .hour-header span");
-      if (!cell) return;
+    // Double-click: reset scrub line to now position
+    DOM.scrubHandle.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      State.scrubFraction = null;   // null = snap to now
+      Renderer.renderScrubLine();
+      Renderer.renderDayNight(State.selectedOffsetHours || 0);
+    });
 
-      const hourGrid = DOM.hourHeader || document.querySelector(".hours");
-      if (!hourGrid) return;
-      const gridRect = hourGrid.getBoundingClientRect();
-      const clampedX = MathUtils.clamp(event.clientX, gridRect.left, gridRect.right);
-      const clickedOffset = ((clampedX - gridRect.left) / gridRect.width) * 24;
+    // Mousedown: start drag
+    DOM.scrubHandle.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;   // left button only
+      isDragging = true;
+      DOM.scrubLine.classList.add("is-dragging");
+      DOM.scrubHandle.classList.add("is-dragging");
+      e.preventDefault();
+    });
 
-      State.selectedOffsetHours = clickedOffset;
-      Renderer.updatePinState();
+    // Mousemove on document: update position while dragging
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const panelRect = DOM.timelinePanel.getBoundingClientRect();
+      const pxLeft = e.clientX - panelRect.left;
+      State.scrubFraction = TimelineUtils.leftToFraction(pxLeft);
+
+      const left = TimelineUtils.fractionToLeft(State.scrubFraction);
+      DOM.scrubLine.style.left = `${left}px`;
+      DOM.scrubHandle.style.left = `${left}px`;
+
+      // Live-update day-night overlay
+      const nowFraction = TimelineUtils.getNowFraction();
+      State.selectedOffsetHours = (State.scrubFraction - nowFraction) * 24;
       Renderer.renderDayNight(State.selectedOffsetHours);
+    });
+
+    // Mouseup: end drag
+    document.addEventListener("mouseup", () => {
+      if (!isDragging) return;
+      isDragging = false;
+      DOM.scrubLine.classList.remove("is-dragging");
+      DOM.scrubHandle.classList.remove("is-dragging");
     });
   },
 
@@ -1034,7 +1168,7 @@ const AppController = {
     State.init();
 
     this.wireSettings();
-    this.wireTimelineHover();
+    this.wireScrubLine();
     this.wireMapTimezoneHover();
     Renderer.renderSettingsControls();
 
@@ -1044,6 +1178,16 @@ const AppController = {
       Renderer.applyLanguage();
       Renderer.render();
     });
+
+    // Now-line reference mode toggle
+    if (DOM.nowLineModeSelect) {
+      DOM.nowLineModeSelect.value = State.nowLineMode;
+      DOM.nowLineModeSelect.addEventListener("change", (e) => {
+        State.saveNowLineMode(e.target.value);
+        State.scrubFraction = null;   // reset scrub to new now position
+        Renderer.render();
+      });
+    }
 
     DOM.resetButton.addEventListener("click", () => {
       State.selectedIds = [...CONFIG.defaultSelection];

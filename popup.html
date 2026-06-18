@@ -177,6 +177,13 @@
                 </div>
               </div>
             </div>
+            <label class="lang-control" style="margin-top:12px;">
+              <span data-i18n="nowLineMode">Now-line reference</span>
+              <select id="nowLineModeSelect">
+                <option value="local" data-i18n="nowLineModeLocal">Browser local time</option>
+                <option value="firstCity" data-i18n="nowLineModeFirstCity">First city time</option>
+              </select>
+            </label>
             <div class="settings-actions" style="margin-top: 12px;">
               <button id="resetPeriodsButton" class="text-button" type="button" data-i18n="resetTimePeriods">Reset Period Colors</button>
             </div>
@@ -200,12 +207,13 @@
       </details>
 
       <section class="timeline-panel" aria-label="Timeline">
-        <div class="timeline-head">
-          <span data-i18n="city">City</span>
-          <div id="hourHeader" class="hour-header" aria-hidden="true"></div>
-        </div>
         <div id="timelineRows" class="timeline-rows"></div>
-        <div id="hoverGuide" class="hover-guide" aria-hidden="true"></div>
+        <!-- Now Line: always visible, shows current time of reference timezone -->
+        <div id="nowLine" class="timeline-vline now-line" aria-hidden="true"></div>
+        <!-- Scrub Line: draggable, controls day-night overlay offset -->
+        <div id="scrubLine" class="timeline-vline scrub-line" aria-hidden="true"></div>
+        <!-- Scrub Handle: wider hit area for drag interaction -->
+        <div id="scrubHandle" class="scrub-handle" aria-label="Drag to shift day-night view"></div>
       </section>
     </main>
     <script src="i18n.js"></script>

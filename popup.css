@@ -5,9 +5,10 @@
   --ink: #1d2528;
   --muted: #637074;
   --line: #d9ded8;
-  --accent: #0f8b8d;
-  --accent-dark: #096569;
-  --selected-pin: #86a88a;
+  --accent: var(--ink);
+  --accent-dark: var(--ink);
+  --unselected-pin: #ffc56f;
+  --selected-pin: #de6b23;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -186,7 +187,6 @@ h1 {
 
 .setting-control input {
   width: 100%;
-  accent-color: var(--accent);
 }
 
 .setting-control button,
@@ -405,7 +405,7 @@ h1 {
   padding: 0;
   border: 1.5px solid #ffffff;
   border-radius: 50%;
-  background: var(--accent-dark);
+  background: var(--unselected-pin);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s, background-color 0.2s;
@@ -426,38 +426,14 @@ h1 {
 
 /* .timeline-panel 的完整樣式已合併至上方 */
 
-.timeline-head,
 .timeline-row {
   display: grid;
   grid-template-columns: 120px 1fr;
 }
 
-.timeline-head {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  border-bottom: 1px solid var(--line);
-  background: #fafbf8;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.timeline-head>span {
-  padding: 8px 8px;
-  border-right: 1px solid var(--line);
-}
-
-.hour-header,
 .hours {
   display: grid;
   grid-template-columns: repeat(24, minmax(25px, 1fr));
-}
-
-.hour-header span {
-  padding: 8px 0;
-  text-align: center;
-  border-right: 1px solid #eef1ed;
 }
 
 .timeline-rows {
@@ -558,21 +534,58 @@ h1 {
 */
 
 
-.hover-guide {
+/* ======================================
+   Timeline Vertical Lines
+   ====================================== */
+
+/* Shared base for both lines */
+.timeline-vline {
   position: absolute;
-  top: 37px;
+  top: 0;
   bottom: 0;
   width: 0;
-  border-left: 2px dashed rgba(9, 101, 105, .92);
-  opacity: 0;
   pointer-events: none;
   z-index: 5;
 }
 
-.timeline-panel.has-pin .hover-guide {
-  opacity: 1;
-  border-left-style: solid;
+/* Now Line — always visible, red solid line (current time) */
+.now-line {
+  border-left: 2.5px solid rgba(9, 101, 105, 0.88);
+  box-shadow: 1px 0 6px rgba(9, 101, 105, 0.30);
 }
+
+/* Scrub Line — draggable teal dashed line (day-night controller) */
+.scrub-line {
+  border-left: 2px dashed rgba(9, 101, 105, 0.88);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.scrub-line.is-dragging {
+  border-left-style: solid;
+  border-left-color: rgba(9, 101, 105, 1);
+  box-shadow: 1px 0 8px rgba(9, 101, 105, 0.45);
+}
+
+/* Scrub Handle — wider invisible hit area centered on scrub line */
+.scrub-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  transform: translateX(-10px);
+  background: transparent;
+  cursor: ew-resize;
+  pointer-events: auto;
+  z-index: 6;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.scrub-handle:hover,
+.scrub-handle.is-dragging {
+  background: rgba(9, 101, 105, 0.10);
+}
+
 
 .time-periods-panel {
   margin-top: 12px;
