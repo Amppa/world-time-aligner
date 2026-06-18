@@ -654,3 +654,45 @@ h1 {
   gap: 8px;
   margin-top: 10px;
 }
+
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f3f1;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.suggestion-item:last-child {
+  border-bottom: 0;
+}
+
+.suggestion-item:hover {
+  background: #f4f7f5;
+}
+
+.suggestion-title {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.suggestion-subtitle {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 1px;
+}

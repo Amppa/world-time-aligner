@@ -88,10 +88,11 @@
           <div class="details-content">
             <div class="custom-city-form">
               <label>
-                <span data-i18n="cityName">Name</span>
-                <div style="display: flex; gap: 4px;">
+                <span data-i18n="cityName">城市名(英文)</span>
+                <div style="display: flex; gap: 4px; position: relative;">
                   <input id="customCityName" type="text" placeholder="e.g. Hong Kong" data-i18n-placeholder="cityNamePlaceholder" maxlength="20" style="flex: 1; min-width: 0;">
                   <button id="searchCityButton" type="button" style="padding: 0 8px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfa; cursor: pointer; color: var(--accent-dark); flex-shrink: 0;" title="Auto-fill timezone and coordinates">🔍</button>
+                  <div id="searchSuggestions" class="search-suggestions" hidden></div>
                 </div>
               </label>
               <label>

@@ -49,6 +49,7 @@ const DOM = {
   customCityY: document.querySelector("#customCityY"),
   addCustomCityButton: document.querySelector("#addCustomCityButton"),
   searchCityButton: document.querySelector("#searchCityButton"),
+  searchSuggestions: document.querySelector("#searchSuggestions"),
   customCityList: document.querySelector("#customCityList"),
   langSelect: document.querySelector("#langSelect"),
   mapImg: document.querySelector(".world-map"),
@@ -794,26 +795,72 @@ const AppController = {
     }
 
     if (DOM.searchCityButton) {
-      DOM.searchCityButton.addEventListener("click", () => {
+      document.addEventListener("click", (e) => {
+        if (DOM.searchSuggestions && !DOM.searchSuggestions.contains(e.target) && e.target !== DOM.customCityName && e.target !== DOM.searchCityButton) {
+          DOM.searchSuggestions.hidden = true;
+        }
+      });
+
+      if (DOM.customCityName) {
+        DOM.customCityName.addEventListener("input", () => {
+          if (DOM.searchSuggestions) {
+            DOM.searchSuggestions.hidden = true;
+          }
+        });
+      }
+
+      DOM.searchCityButton.addEventListener("click", (e) => {
+        e.stopPropagation();
         const query = DOM.customCityName.value.trim();
         if (!query) return;
 
         DOM.searchCityButton.textContent = "⏳";
         DOM.searchCityButton.style.pointerEvents = "none";
+        DOM.searchSuggestions.hidden = true;
+        DOM.searchSuggestions.innerHTML = "";
 
-        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`)
+        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`)
           .then((res) => res.json())
           .then((data) => {
             if (data && data.results && data.results.length > 0) {
-              const result = data.results[0];
-              DOM.customCityZone.value = result.timezone || "";
-              
-              // Project coordinates to world-map.jpg coordinates
-              const cx = 0.2816 * result.longitude + 46.2357;
-              const cy = -0.5257 * result.latitude + 63.3239;
-              
-              DOM.customCityX.value = cx.toFixed(1);
-              DOM.customCityY.value = cy.toFixed(1);
+              if (data.results.length === 1) {
+                const result = data.results[0];
+                DOM.customCityName.value = result.name;
+                DOM.customCityZone.value = result.timezone || "";
+                const cx = 0.2816 * result.longitude + 46.2357;
+                const cy = -0.5257 * result.latitude + 63.3239;
+                DOM.customCityX.value = cx.toFixed(1);
+                DOM.customCityY.value = cy.toFixed(1);
+              } else {
+                DOM.searchSuggestions.innerHTML = "";
+                data.results.forEach((result) => {
+                  const item = document.createElement("div");
+                  item.className = "suggestion-item";
+                  
+                  const subtitleParts = [];
+                  if (result.country) subtitleParts.push(result.country);
+                  if (result.admin1) subtitleParts.push(result.admin1);
+                  const subtitleText = subtitleParts.length > 0 ? ` (${subtitleParts.join(", ")})` : "";
+                  
+                  item.innerHTML = `
+                    <div class="suggestion-title">${result.name}${subtitleText}</div>
+                    <div class="suggestion-subtitle">${result.timezone || ""}</div>
+                  `;
+                  
+                  item.addEventListener("click", (evt) => {
+                    evt.stopPropagation();
+                    DOM.customCityName.value = result.name;
+                    DOM.customCityZone.value = result.timezone || "";
+                    const cx = 0.2816 * result.longitude + 46.2357;
+                    const cy = -0.5257 * result.latitude + 63.3239;
+                    DOM.customCityX.value = cx.toFixed(1);
+                    DOM.customCityY.value = cy.toFixed(1);
+                    DOM.searchSuggestions.hidden = true;
+                  });
+                  DOM.searchSuggestions.append(item);
+                });
+                DOM.searchSuggestions.hidden = false;
+              }
             } else {
               alert(TimeUtils.getTranslation("cityNotFound") || "City not found");
             }
