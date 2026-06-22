@@ -43,7 +43,8 @@ const i18nTranslations = {
     worldMapTitle: "世界地圖",
     langZh: "繁體中文",
     langEn: "English",
-    cityNotFound: "找不到該城市"
+    cityNotFound: "找不到該城市",
+    resetScrubLine: "重設為目前時間"
   },
   en: {
     nowTextLoading: "Loading current time...",
@@ -89,7 +90,8 @@ const i18nTranslations = {
     worldMapTitle: "World Map",
     langZh: "Traditional Chinese",
     langEn: "English",
-    cityNotFound: "City not found"
+    cityNotFound: "City not found",
+    resetScrubLine: "Reset to current time"
   }
 };
 

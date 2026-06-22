@@ -37,6 +37,7 @@ const DOM = {
   nowLine: document.querySelector("#nowLine"),
   scrubLine: document.querySelector("#scrubLine"),
   scrubHandle: document.querySelector("#scrubHandle"),
+  scrubResetBtn: document.querySelector("#scrubResetBtn"),
   timelinePanel: document.querySelector(".timeline-panel"),
   nowText: document.querySelector("#nowText"),
   resetButton: document.querySelector("#resetButton"),
@@ -819,23 +820,43 @@ const Renderer = {
 
   renderScrubLine() {
     if (!DOM.scrubLine || !DOM.scrubHandle) return;
-    // If scrubFraction is null, snap to now
-    if (State.scrubFraction === null) {
-      State.scrubFraction = TimelineUtils.getNowFraction();
+    
+    const isSnapped = (State.scrubFraction === null);
+    let fraction = State.scrubFraction;
+    if (isSnapped) {
+      fraction = TimelineUtils.getNowFraction();
     }
-    const left = TimelineUtils.fractionToLeft(State.scrubFraction);
+    
+    if (DOM.scrubResetBtn) {
+      if (isSnapped) {
+        DOM.scrubResetBtn.classList.remove("is-visible");
+      } else {
+        DOM.scrubResetBtn.classList.add("is-visible");
+      }
+    }
+    
+    const left = TimelineUtils.fractionToLeft(fraction);
     if (left === 0) {
       DOM.scrubLine.style.display = "none";
       DOM.scrubHandle.style.display = "none";
+      if (DOM.scrubResetBtn) {
+        DOM.scrubResetBtn.style.display = "none";
+      }
       return;
     }
     DOM.scrubLine.style.display = "";
     DOM.scrubHandle.style.display = "";
     DOM.scrubLine.style.left = `${left}px`;
     DOM.scrubHandle.style.left = `${left}px`;
+    
+    if (DOM.scrubResetBtn) {
+      DOM.scrubResetBtn.style.display = "";
+      DOM.scrubResetBtn.style.left = `${left}px`;
+    }
+    
     // Compute day-night offset relative to real now
     const nowFraction = TimelineUtils.getNowFraction();
-    State.selectedOffsetHours = (State.scrubFraction - nowFraction) * 24;
+    State.selectedOffsetHours = (fraction - nowFraction) * 24;
   }
 };
 
@@ -1061,6 +1082,19 @@ const AppController = {
       Renderer.renderDayNight(State.selectedOffsetHours || 0);
     });
 
+    if (DOM.scrubResetBtn) {
+      DOM.scrubResetBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        State.scrubFraction = null;   // null = snap to now
+        Renderer.renderScrubLine();
+        Renderer.renderDayNight(State.selectedOffsetHours || 0);
+      });
+      DOM.scrubResetBtn.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+      });
+    }
+
     // Mousedown: start drag
     DOM.scrubHandle.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return;   // left button only
@@ -1080,6 +1114,10 @@ const AppController = {
       const left = TimelineUtils.fractionToLeft(State.scrubFraction);
       DOM.scrubLine.style.left = `${left}px`;
       DOM.scrubHandle.style.left = `${left}px`;
+      if (DOM.scrubResetBtn) {
+        DOM.scrubResetBtn.style.left = `${left}px`;
+        DOM.scrubResetBtn.classList.add("is-visible");
+      }
 
       // Live-update day-night overlay
       const nowFraction = TimelineUtils.getNowFraction();
