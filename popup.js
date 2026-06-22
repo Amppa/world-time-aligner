@@ -77,7 +77,7 @@ const MathUtils = {
 
 const TimeUtils = {
   resolveZone(zone) {
-    if (!zone) return "";
+    if (typeof zone !== "string") return "UTC";
     const cleanInput = zone.trim().toLowerCase().replace(/[\s\-_]+/g, "");
 
     // 1. Try case-insensitive and loose matching against browser supported zones
@@ -113,73 +113,92 @@ const TimeUtils = {
         return candidate;
       } catch { }
     }
-    return zone;
+
+    return "UTC";
   },
 
   isValidZone(zone) {
+    if (typeof zone !== "string" || !zone.trim()) return false;
     const resolved = this.resolveZone(zone);
     try {
       new Intl.DateTimeFormat("en-US", { timeZone: resolved }).format(new Date());
-      return true;
+      return resolved !== "UTC" || zone.trim().toUpperCase() === "UTC";
     } catch {
       return false;
     }
   },
 
   formatTime(date, zone, options = {}) {
-    const resolved = this.resolveZone(zone);
-    const locale = State.currentLang === "zh" ? "zh-TW" : "en-US";
-    return new Intl.DateTimeFormat(locale, {
-      timeZone: resolved,
-      hour: "2-digit",
-      minute: options.withMinutes === false ? undefined : "2-digit",
-      hour12: false,
-      weekday: options.weekday ? "short" : undefined
-    }).format(date);
+    try {
+      const resolved = this.resolveZone(zone);
+      const locale = State.currentLang === "zh" ? "zh-TW" : "en-US";
+      return new Intl.DateTimeFormat(locale, {
+        timeZone: resolved,
+        hour: "2-digit",
+        minute: options.withMinutes === false ? undefined : "2-digit",
+        hour12: false,
+        weekday: options.weekday ? "short" : undefined
+      }).format(date);
+    } catch {
+      return "00:00";
+    }
   },
 
   hourInZone(date, zone) {
-    const resolved = this.resolveZone(zone);
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: resolved,
-      hour: "2-digit",
-      hourCycle: "h23"
-    }).formatToParts(date);
-    return Number(parts.find((part) => part.type === "hour").value);
+    try {
+      const resolved = this.resolveZone(zone);
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: resolved,
+        hour: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(date);
+      const hourPart = parts.find((part) => part.type === "hour");
+      return hourPart ? Number(hourPart.value) : date.getHours();
+    } catch {
+      return date.getHours();
+    }
   },
 
   utcOffsetText(date, zone) {
-    const resolved = this.resolveZone(zone);
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: resolved,
-      timeZoneName: "shortOffset"
-    }).formatToParts(date);
-    const offset = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
-    const match = offset.match(/^GMT([+-])?(\d{1,2})?(?::?(\d{2}))?$/);
-    if (!match || !match[1]) return "UTC+0";
+    try {
+      const resolved = this.resolveZone(zone);
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: resolved,
+        timeZoneName: "shortOffset"
+      }).formatToParts(date);
+      const offset = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
+      const match = offset.match(/^GMT([+-])?(\d{1,2})?(?::?(\d{2}))?$/);
+      if (!match || !match[1]) return "UTC+0";
 
-    const sign = match[1];
-    const hour = Number(match[2] || 0);
-    const minute = match[3] ? `:${match[3]}` : "";
-    return `UTC${sign}${hour}${minute}`;
+      const sign = match[1];
+      const hour = Number(match[2] || 0);
+      const minute = match[3] ? `:${match[3]}` : "";
+      return `UTC${sign}${hour}${minute}`;
+    } catch {
+      return "UTC+0";
+    }
   },
 
   getOffsetMinutes(date, zone) {
-    const resolved = this.resolveZone(zone);
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: resolved,
-      timeZoneName: "longOffset"
-    }).formatToParts(date);
-    const offsetStr = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
-    if (offsetStr === "GMT") return 0;
+    try {
+      const resolved = this.resolveZone(zone);
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: resolved,
+        timeZoneName: "longOffset"
+      }).formatToParts(date);
+      const offsetStr = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
+      if (offsetStr === "GMT") return 0;
 
-    const match = offsetStr.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
-    if (!match) return 0;
+      const match = offsetStr.match(/^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/);
+      if (!match) return 0;
 
-    const sign = match[1] === "+" ? 1 : -1;
-    const hours = Number(match[2]);
-    const minutes = match[3] ? Number(match[3]) : 0;
-    return sign * (hours * 60 + minutes);
+      const sign = match[1] === "+" ? 1 : -1;
+      const hours = Number(match[2]);
+      const minutes = match[3] ? Number(match[3]) : 0;
+      return sign * (hours * 60 + minutes);
+    } catch {
+      return 0;
+    }
   },
 
   isCurrentlyDST(zone) {
@@ -204,8 +223,7 @@ const TimeUtils = {
     } catch {
       return false;
     }
-  },
-
+  }
 };
 
 // ==========================================
@@ -253,9 +271,11 @@ const MapUtils = {
       cx = 0.2816 * city.lng + 46.2357;
       cy = -0.5257 * city.lat + 63.3239;
     }
+    const screenPercentX = MathUtils.clamp(50 + (cx - 50) * State.mapSettings.widthScale + State.mapSettings.lngOffset, 0, 100);
+    const screenPercentY = MathUtils.clamp(50 + (cy - 50) * State.mapSettings.heightScale - State.mapSettings.latOffset, 0, 100);
     return {
-      x: MathUtils.clamp(50 + (cx - 50) * State.mapSettings.widthScale + State.mapSettings.lngOffset, 0, 100),
-      y: MathUtils.clamp(50 + (cy - 50) * State.mapSettings.heightScale - State.mapSettings.latOffset, 0, 100)
+      x: screenPercentX,
+      y: screenPercentY
     };
   },
 
