@@ -614,7 +614,9 @@ const Renderer = {
       const cityName = I18nUtils.getCityName(city);
       const labelText = document.createElement("div");
       labelText.className = "city-label-text";
-      const dstSuffix = TimeUtils.isCurrentlyDST(city.zone) ? ` ${I18nUtils.getTranslation("dstLabel")}` : "";
+      const dstSuffix = TimeUtils.isCurrentlyDST(city.zone)
+        ? ` <span title="${I18nUtils.getTranslation("dstTooltip")}">${I18nUtils.getTranslation("dstLabel")}</span>`
+        : "";
       labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}${dstSuffix}</span>`;
 
       const removeBtn = document.createElement("button");
