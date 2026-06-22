@@ -383,6 +383,14 @@ h1 {
   stroke: none;
 }
 
+/* Static reference curve: shows the day-night boundary at the true "now" time */
+.day-night-overlay #nightPathRef {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
 .timezone-hover-bar {
   position: absolute;
   top: 0;

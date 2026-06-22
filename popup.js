@@ -60,7 +60,8 @@ const DOM = {
   timezoneHoverBar: document.querySelector("#timezoneHoverBar"),
   timezoneLines: document.querySelector(".time-zone-lines"),
   dayNightOverlay: document.querySelector("#dayNightOverlay"),
-  nightPath: document.querySelector("#nightPath")
+  nightPath: document.querySelector("#nightPath"),
+  nightPathRef: document.querySelector("#nightPathRef")
 };
 
 // ==========================================
@@ -749,6 +750,28 @@ const Renderer = {
     }
   },
 
+  /** Returns the SVG point array for the day-night boundary at a given hour offset from now. */
+  _calcNightBoundaryPoints(offsetHours) {
+    const time = new Date();
+    time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
+
+    const DECLINATION_DEG = 35.0;
+    const tanDec = Math.tan(DECLINATION_DEG * Math.PI / 180);
+    const Y_SHIFT = 10;
+
+    const subsolarLng = -(time.getUTCHours() + time.getUTCMinutes() / 60 - 12) * 15;
+
+    const points = [];
+    for (let x = 0; x <= 100; x += 2) {
+      const lng = MapUtils.getXLongitude(x);
+      const lat = Math.atan(-Math.cos((lng - subsolarLng) * Math.PI / 180) / tanDec)
+        * 180 / Math.PI + Y_SHIFT;
+      const { x: px, y: py } = MapUtils.mapPosition({ lng, lat });
+      points.push(`${px.toFixed(1)},${py.toFixed(1)}`);
+    }
+    return points;
+  },
+
   renderDayNight(offsetHours = 0) {
     if (!DOM.nightPath) return;
 
@@ -756,37 +779,17 @@ const Renderer = {
       DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
     }
 
-    const now = new Date();
-    if (offsetHours !== 0) {
-      now.setTime(now.getTime() + offsetHours * 60 * 60 * 1000);
+    // Filled night area — follows the scrub line offset
+    const pts = this._calcNightBoundaryPoints(offsetHours);
+    DOM.nightPath.setAttribute("d", `M 0,100 L ${pts.join(" L ")} L 100,100 Z`);
+
+    // Static reference curve — always at the true "now" position (offset = 0)
+    if (DOM.nightPathRef) {
+      const refPts = this._calcNightBoundaryPoints(0);
+      DOM.nightPathRef.setAttribute("d", `M ${refPts.join(" L ")}`);
     }
-    // Fix declination to 50 degrees to get a gentle wave shape (amplitude of 40 degrees latitude)
-    const declination = 35.0;
-    const decRad = declination * Math.PI / 180;
-    const tanDec = Math.tan(decRad);
-    const yShift = 10;
-
-    const utcHours = now.getUTCHours();
-    const utcMinutes = now.getUTCMinutes();
-    const subsolarLng = -(utcHours + utcMinutes / 60 - 12) * 15;
-
-    // Always close path at the bottom edge (South)
-    const poleY = 100;
-
-    const points = [];
-    for (let x = 0; x <= 100; x += 2) {
-      const lng = MapUtils.getXLongitude(x);
-      const diffLngRad = (lng - subsolarLng) * Math.PI / 180;
-      const latRad = Math.atan(-Math.cos(diffLngRad) / tanDec);
-      const lat = latRad * 180 / Math.PI + yShift;
-
-      const mapPos = MapUtils.mapPosition({ lng, lat });
-      points.push(`${mapPos.x.toFixed(1)},${mapPos.y.toFixed(1)}`);
-    }
-
-    const pathD = `M 0,${poleY} L ${points.join(" L ")} L 100,${poleY} Z`;
-    DOM.nightPath.setAttribute("d", pathD);
   },
+
 
   render() {
     State.makeBaseHours();
