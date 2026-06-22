@@ -62,7 +62,8 @@ const DOM = {
   timezoneLines: document.querySelector(".time-zone-lines"),
   dayNightOverlay: document.querySelector("#dayNightOverlay"),
   nightPath: document.querySelector("#nightPath"),
-  nightPathRef: document.querySelector("#nightPathRef")
+  nightPathRef: document.querySelector("#nightPathRef"),
+  mapTimeline: document.querySelector("#mapTimeline")
 };
 
 // ==========================================
@@ -773,8 +774,42 @@ const Renderer = {
     return points;
   },
 
+  renderMapTimeline(offsetHours = 0) {
+    if (!DOM.mapTimeline) return;
+    DOM.mapTimeline.innerHTML = "";
+
+    const time = new Date();
+    time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
+
+    const subsolarLng = -(time.getUTCHours() + time.getUTCMinutes() / 60 - 12) * 15;
+    const centerLng = MapUtils.getXLongitude(50);
+
+    for (let h = 0; h < 24; h += 2) {
+      const baseLng = subsolarLng + (h - 12) * 15;
+      let diff = baseLng - centerLng;
+      diff = ((diff + 180) % 360 + 360) % 360 - 180;
+      const lng = centerLng + diff;
+
+      const x = MapUtils.getLongitudeX(lng);
+      if (x >= 0 && x <= 100) {
+        const tick = document.createElement("div");
+        tick.className = "map-timeline-tick";
+        tick.style.left = `${x}%`;
+
+        const label = document.createElement("div");
+        label.className = "map-timeline-label";
+        label.style.left = `${x}%`;
+        label.textContent = `${String(h).padStart(2, "0")}:00`;
+
+        DOM.mapTimeline.append(tick, label);
+      }
+    }
+  },
+
   renderDayNight(offsetHours = 0) {
     if (!DOM.nightPath) return;
+
+    this.renderMapTimeline(offsetHours);
 
     if (DOM.dayNightOverlay) {
       DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
@@ -820,13 +855,13 @@ const Renderer = {
 
   renderScrubLine() {
     if (!DOM.scrubLine || !DOM.scrubHandle) return;
-    
+
     const isSnapped = (State.scrubFraction === null);
     let fraction = State.scrubFraction;
     if (isSnapped) {
       fraction = TimelineUtils.getNowFraction();
     }
-    
+
     if (DOM.scrubResetBtn) {
       if (isSnapped) {
         DOM.scrubResetBtn.classList.remove("is-visible");
@@ -834,7 +869,7 @@ const Renderer = {
         DOM.scrubResetBtn.classList.add("is-visible");
       }
     }
-    
+
     const left = TimelineUtils.fractionToLeft(fraction);
     if (left === 0) {
       DOM.scrubLine.style.display = "none";
@@ -848,12 +883,12 @@ const Renderer = {
     DOM.scrubHandle.style.display = "";
     DOM.scrubLine.style.left = `${left}px`;
     DOM.scrubHandle.style.left = `${left}px`;
-    
+
     if (DOM.scrubResetBtn) {
       DOM.scrubResetBtn.style.display = "";
       DOM.scrubResetBtn.style.left = `${left}px`;
     }
-    
+
     // Compute day-night offset relative to real now
     const nowFraction = TimelineUtils.getNowFraction();
     State.selectedOffsetHours = (fraction - nowFraction) * 24;
