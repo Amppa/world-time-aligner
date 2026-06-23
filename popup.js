@@ -19,7 +19,9 @@ const CONFIG = {
     latOffset: 20.7,
     widthScale: 1.0,
     heightScale: 1.39,
-    mapYOffset: 30
+    mapYOffset: 30,
+    showNightArea: true,
+    showHourLines: true
   },
   defaultTimePeriods: [
     { name: "period1", start: 8, end: 17, color: "rgba(255, 231, 163, 1)", fontColor: "#000000ff" },
@@ -418,7 +420,9 @@ const State = {
           latOffset: Number.isFinite(Number(saved.latOffset)) ? Number(saved.latOffset) : CONFIG.defaultMapSettings.latOffset,
           widthScale: Number.isFinite(Number(saved.widthScale)) ? Number(saved.widthScale) : CONFIG.defaultMapSettings.widthScale,
           heightScale: Number.isFinite(Number(saved.heightScale)) ? Number(saved.heightScale) : CONFIG.defaultMapSettings.heightScale,
-          mapYOffset: Number.isFinite(Number(saved.mapYOffset)) ? Number(saved.mapYOffset) : CONFIG.defaultMapSettings.mapYOffset
+          mapYOffset: Number.isFinite(Number(saved.mapYOffset)) ? Number(saved.mapYOffset) : CONFIG.defaultMapSettings.mapYOffset,
+          showNightArea: saved.showNightArea !== undefined ? !!saved.showNightArea : CONFIG.defaultMapSettings.showNightArea,
+          showHourLines: saved.showHourLines !== undefined ? !!saved.showHourLines : CONFIG.defaultMapSettings.showHourLines
         };
       }
     } catch {
@@ -614,7 +618,11 @@ const Renderer = {
   renderSettingsControls() {
     document.querySelectorAll("[data-setting]").forEach((input) => {
       const key = input.dataset.setting;
-      input.value = String(State.mapSettings[key]);
+      if (input.type === "checkbox") {
+        input.checked = !!State.mapSettings[key];
+      } else {
+        input.value = String(State.mapSettings[key]);
+      }
     });
 
     document.querySelectorAll("[data-output]").forEach((output) => {
@@ -858,6 +866,15 @@ const Renderer = {
   },
 
 
+  applyVisibilitySettings() {
+    if (DOM.dayNightOverlay) {
+      DOM.dayNightOverlay.style.display = State.mapSettings.showNightArea ? "" : "none";
+    }
+    if (DOM.hourLines) {
+      DOM.hourLines.style.display = State.mapSettings.showHourLines ? "" : "none";
+    }
+  },
+
   render() {
     State.makeBaseHours();
     this.renderNowText();
@@ -869,6 +886,7 @@ const Renderer = {
     this.renderNowLine();
     this.renderScrubLine();
     this.renderDayNight(State.selectedOffsetHours || 0);
+    this.applyVisibilitySettings();
   },
 
   renderNowLine() {
@@ -983,9 +1001,18 @@ const AppController = {
       DOM.settingsButton.setAttribute("aria-expanded", String(isOpen));
     });
 
-    document.querySelectorAll("[data-setting]").forEach((input) => {
+    document.querySelectorAll("[data-setting]:not([type='checkbox'])").forEach((input) => {
       input.addEventListener("input", () => {
         this.updateMapSetting(input.dataset.setting, input.value);
+      });
+    });
+
+    document.querySelectorAll("input[type='checkbox'][data-setting]").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        const key = checkbox.dataset.setting;
+        State.mapSettings[key] = checkbox.checked;
+        State.saveMapSettings();
+        Renderer.applyVisibilitySettings();
       });
     });
 

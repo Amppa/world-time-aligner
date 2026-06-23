@@ -16,7 +16,7 @@ const i18nTranslations = {
     timezone: "IANA時區",
     timezonePlaceholder: "例如：Asia/Hong_Kong",
     addCity: "新增城市",
-    resetMapParams: "重設地圖參數",
+    resetMapParams: "重設地圖偏移",
     selectedCities: "已選城市",
     city: "城市",
     updateBtn: "更新",
@@ -34,7 +34,7 @@ const i18nTranslations = {
     nowLineMode: "時間軸基準",
     nowLineModeLocal: "瀏覽器本地時間",
     nowLineModeFirstCity: "第一個城市時間",
-    mapCalibrationSection: "2. 地圖偏移",
+    mapCalibrationSection: "2. 小地圖設定",
     customCitySection: "3. 手動新增城市",
     timePeriodSection: "4. 時段設定",
     resetTimePeriods: "恢復預設",
@@ -44,7 +44,9 @@ const i18nTranslations = {
     langZh: "繁體中文",
     langEn: "English",
     cityNotFound: "找不到該城市",
-    resetScrubLine: "重設為目前時間"
+    resetScrubLine: "重設為目前時間",
+    showNightArea: "顯示夜間範圍",
+    showHourLines: "顯示小時線"
   },
   en: {
     nowTextLoading: "Loading current time...",
@@ -63,7 +65,7 @@ const i18nTranslations = {
     timezone: "IANA Timezone",
     timezonePlaceholder: "e.g., Asia/Hong_Kong",
     addCity: "Add City",
-    resetMapParams: "Reset Map Params",
+    resetMapParams: "Reset Map Offsets",
     selectedCities: "Selected Cities",
     city: "City",
     updateBtn: "Update",
@@ -81,7 +83,7 @@ const i18nTranslations = {
     nowLineMode: "Now-line reference",
     nowLineModeLocal: "Browser local time",
     nowLineModeFirstCity: "First city time",
-    mapCalibrationSection: "2. City Position Offset",
+    mapCalibrationSection: "2. Minimap Settings",
     customCitySection: "3. Custom Cities",
     timePeriodSection: "4. Time Period Settings",
     resetTimePeriods: "Reset Time Period Colors",
@@ -91,7 +93,9 @@ const i18nTranslations = {
     langZh: "Traditional Chinese",
     langEn: "English",
     cityNotFound: "City not found",
-    resetScrubLine: "Reset to current time"
+    resetScrubLine: "Reset to current time",
+    showNightArea: "Show Night Area",
+    showHourLines: "Show Hour Lines"
   }
 };
 
