@@ -9,30 +9,56 @@ const MathUtils = {
 };
 
 const TimeUtils = {
+  _formatterCache: {},
+  _resolvedCache: {},
+  _cachedSupportedZones: null,
+
+  getFormatter(locale, options) {
+    const key = `${locale}_${options.timeZone || ''}_${options.hour || ''}_${options.minute || ''}_${options.hour12 || ''}_${options.weekday || ''}_${options.hourCycle || ''}_${options.timeZoneName || ''}_${options.year || ''}_${options.month || ''}_${options.day || ''}`;
+    if (!this._formatterCache[key]) {
+      this._formatterCache[key] = new Intl.DateTimeFormat(locale, options);
+    }
+    return this._formatterCache[key];
+  },
+
   resolveZone(zone) {
     if (typeof zone !== "string") return "UTC";
     const cleanInput = zone.trim().toLowerCase().replace(/[\s\-_]+/g, "");
 
+    if (this._resolvedCache[cleanInput]) {
+      return this._resolvedCache[cleanInput];
+    }
+
     // 1. Try case-insensitive and loose matching against browser supported zones
     if (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function") {
       try {
-        const supported = Intl.supportedValuesOf("timeZone");
+        if (!this._cachedSupportedZones) {
+          this._cachedSupportedZones = Intl.supportedValuesOf("timeZone");
+        }
+        const supported = this._cachedSupportedZones;
         // Look for exact match (ignoring case/spaces/hyphens/underscores)
         let match = supported.find(tz => tz.toLowerCase().replace(/[\s\-_]+/g, "") === cleanInput);
-        if (match) return match;
+        if (match) {
+          this._resolvedCache[cleanInput] = match;
+          return match;
+        }
 
         // Look for shorthand match (e.g. "taipei" matches "Asia/Taipei")
         match = supported.find(tz => {
           const parts = tz.toLowerCase().split("/");
           return parts[parts.length - 1].replace(/[\s\-_]+/g, "") === cleanInput;
         });
-        if (match) return match;
+        if (match) {
+          this._resolvedCache[cleanInput] = match;
+          return match;
+        }
       } catch (e) { }
     }
 
     // 2. Direct validation fallback (handles UTC offsets, Etc/GMT, etc.)
     try {
-      new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
+      this.getFormatter("en-US", { timeZone: zone }).format(new Date());
+      this._resolvedCache[cleanInput] = zone;
       return zone;
     } catch { }
 
@@ -42,11 +68,13 @@ const TimeUtils = {
     for (const prefix of prefixes) {
       const candidate = `${prefix}/${formatted}`;
       try {
-        new Intl.DateTimeFormat("en-US", { timeZone: candidate }).format(new Date());
+        this.getFormatter("en-US", { timeZone: candidate }).format(new Date());
+        this._resolvedCache[cleanInput] = candidate;
         return candidate;
       } catch { }
     }
 
+    this._resolvedCache[cleanInput] = "UTC";
     return "UTC";
   },
 
@@ -54,7 +82,7 @@ const TimeUtils = {
     if (typeof zone !== "string" || !zone.trim()) return false;
     const resolved = this.resolveZone(zone);
     try {
-      new Intl.DateTimeFormat("en-US", { timeZone: resolved }).format(new Date());
+      this.getFormatter("en-US", { timeZone: resolved }).format(new Date());
       return resolved !== "UTC" || zone.trim().toUpperCase() === "UTC";
     } catch {
       return false;
@@ -65,13 +93,14 @@ const TimeUtils = {
     try {
       const resolved = this.resolveZone(zone);
       const locale = State.currentLang === "zh" ? "zh-TW" : "en-US";
-      return new Intl.DateTimeFormat(locale, {
+      const formatter = this.getFormatter(locale, {
         timeZone: resolved,
         hour: "2-digit",
         minute: options.withMinutes === false ? undefined : "2-digit",
         hour12: false,
         weekday: options.weekday ? "short" : undefined
-      }).format(date);
+      });
+      return formatter.format(date);
     } catch {
       return "00:00";
     }
@@ -80,11 +109,12 @@ const TimeUtils = {
   hourInZone(date, zone) {
     try {
       const resolved = this.resolveZone(zone);
-      const parts = new Intl.DateTimeFormat("en-US", {
+      const formatter = this.getFormatter("en-US", {
         timeZone: resolved,
         hour: "2-digit",
         hourCycle: "h23"
-      }).formatToParts(date);
+      });
+      const parts = formatter.formatToParts(date);
       const hourPart = parts.find((part) => part.type === "hour");
       return hourPart ? Number(hourPart.value) : date.getHours();
     } catch {
@@ -95,10 +125,11 @@ const TimeUtils = {
   utcOffsetText(date, zone) {
     try {
       const resolved = this.resolveZone(zone);
-      const parts = new Intl.DateTimeFormat("en-US", {
+      const formatter = this.getFormatter("en-US", {
         timeZone: resolved,
         timeZoneName: "shortOffset"
-      }).formatToParts(date);
+      });
+      const parts = formatter.formatToParts(date);
       const offset = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
       const match = offset.match(/^GMT([+-])?(\d{1,2})?(?::?(\d{2}))?$/);
       if (!match || !match[1]) return "UTC+0";
@@ -115,10 +146,11 @@ const TimeUtils = {
   getOffsetMinutes(date, zone) {
     try {
       const resolved = this.resolveZone(zone);
-      const parts = new Intl.DateTimeFormat("en-US", {
+      const formatter = this.getFormatter("en-US", {
         timeZone: resolved,
         timeZoneName: "longOffset"
-      }).formatToParts(date);
+      });
+      const parts = formatter.formatToParts(date);
       const offsetStr = parts.find((part) => part.type === "timeZoneName")?.value || "GMT";
       if (offsetStr === "GMT") return 0;
 
@@ -239,12 +271,13 @@ const TimelineUtils = {
       const firstCity = State.findCity(State.selectedIds[0]);
       if (firstCity) {
         const zone = TimeUtils.resolveZone(firstCity.zone);
-        const parts = new Intl.DateTimeFormat("en-US", {
+        const formatter = TimeUtils.getFormatter("en-US", {
           timeZone: zone,
           hour: "2-digit",
           minute: "2-digit",
           hourCycle: "h23"
-        }).formatToParts(now);
+        });
+        const parts = formatter.formatToParts(now);
         hours = Number(parts.find((p) => p.type === "hour").value);
         minutes = Number(parts.find((p) => p.type === "minute").value);
       } else {

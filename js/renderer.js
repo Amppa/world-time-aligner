@@ -153,39 +153,49 @@ const Renderer = {
     if (!DOM.currentCitiesList) return;
     DOM.currentCitiesList.innerHTML = "";
 
-    const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
-      ? Intl.supportedValuesOf("timeZone")
-      : ["UTC", "Asia/Taipei", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Singapore", "Europe/London", "America/New_York", "America/Los_Angeles"];
+    if (!this._cachedZoneDetails) {
+      const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
+        ? Intl.supportedValuesOf("timeZone")
+        : ["UTC", "Asia/Taipei", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Singapore", "Europe/London", "America/New_York", "America/Los_Angeles"];
 
-    const uniqueZonesSet = new Set(supportedZones);
-    State.selectedIds.forEach((id) => {
-      const city = State.findCity(id);
-      if (city && city.zone) {
-        uniqueZonesSet.add(city.zone);
-      }
-    });
+      const uniqueZonesSet = new Set(supportedZones);
+      State.selectedIds.forEach((id) => {
+        const city = State.findCity(id);
+        if (city && city.zone) {
+          uniqueZonesSet.add(city.zone);
+        }
+      });
 
-    const now = new Date();
-    const zoneDetails = Array.from(uniqueZonesSet).map((zone) => {
-      const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
-      const sign = offsetMins >= 0 ? "+" : "-";
-      const absMins = Math.abs(offsetMins);
-      const hours = Math.floor(absMins / 60);
-      const mins = absMins % 60;
-      const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
-      return {
-        zone,
-        offsetMins,
-        label: `${zone} (${offsetStr})`
-      };
-    });
+      const now = new Date();
+      const zoneDetails = Array.from(uniqueZonesSet).map((zone) => {
+        const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
+        const sign = offsetMins >= 0 ? "+" : "-";
+        const absMins = Math.abs(offsetMins);
+        const hours = Math.floor(absMins / 60);
+        const mins = absMins % 60;
+        const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
+        return {
+          zone,
+          offsetMins,
+          label: `${zone} (${offsetStr})`
+        };
+      });
 
-    zoneDetails.sort((a, b) => {
-      if (a.offsetMins !== b.offsetMins) {
-        return a.offsetMins - b.offsetMins;
-      }
-      return a.zone.localeCompare(b.zone);
-    });
+      zoneDetails.sort((a, b) => {
+        if (a.offsetMins !== b.offsetMins) {
+          return a.offsetMins - b.offsetMins;
+        }
+        return a.zone.localeCompare(b.zone);
+      });
+
+      this._cachedZoneDetails = zoneDetails;
+      this._cachedTimezoneOptionsHTML = zoneDetails.map((detail) => {
+        return `<option value="${detail.zone}">${detail.label}</option>`;
+      }).join('');
+    }
+
+    const zoneDetails = this._cachedZoneDetails;
+    const timezoneOptionsHTML = this._cachedTimezoneOptionsHTML;
 
     State.selectedIds.forEach((id) => {
       const city = State.findCity(id);
@@ -205,17 +215,12 @@ const Renderer = {
       card.dataset.id = id;
 
       const currentZone = city.zone || "UTC";
-      let timezoneOptions = "";
-      zoneDetails.forEach((detail) => {
-        const selected = detail.zone === currentZone ? " selected" : "";
-        timezoneOptions += `<option value="${detail.zone}"${selected}>${detail.label}</option>`;
-      });
 
       card.innerHTML = `
         <div class="drag-handle">⋮⋮</div>
         <input class="city-name-input" type="text" value="${cityName.replaceAll('"', "&quot;")}" placeholder="Name">
         <select class="city-zone-select">
-          ${timezoneOptions}
+          ${timezoneOptionsHTML}
         </select>
         <input class="city-lng-input" type="number" step="any" value="${lng.toFixed(2)}" placeholder="Lng">
         <input class="city-lat-input" type="number" step="any" value="${lat.toFixed(2)}" placeholder="Lat">
@@ -225,6 +230,7 @@ const Renderer = {
 
       const nameInput = card.querySelector(".city-name-input");
       const zoneSelect = card.querySelector(".city-zone-select");
+      zoneSelect.value = currentZone;
       const lngInput = card.querySelector(".city-lng-input");
       const latInput = card.querySelector(".city-lat-input");
       const updateBtn = card.querySelector(".update-city-card-btn");

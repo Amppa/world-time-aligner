@@ -113,6 +113,9 @@ const State = {
 
   saveCustomCities() {
     localStorage.setItem(CONFIG.customCitiesKey, JSON.stringify(this.customCities));
+    if (typeof Renderer !== "undefined") {
+      Renderer._cachedZoneDetails = null;
+    }
   },
 
   loadSelection() {
@@ -129,6 +132,9 @@ const State = {
 
   saveSelection() {
     localStorage.setItem(CONFIG.storageKey, JSON.stringify(this.selectedIds));
+    if (typeof Renderer !== "undefined") {
+      Renderer._cachedZoneDetails = null;
+    }
   },
 
   allCities() {
@@ -161,12 +167,13 @@ const State = {
     if (firstCity && firstCity.zone) {
       const zone = TimeUtils.resolveZone(firstCity.zone);
       // Get today's date string in first city's timezone (YYYY-MM-DD via en-CA locale)
-      const dateStr = new Intl.DateTimeFormat("en-CA", {
+      const formatter = TimeUtils.getFormatter("en-CA", {
         timeZone: zone,
         year: "numeric",
         month: "2-digit",
         day: "2-digit"
-      }).format(now);
+      });
+      const dateStr = formatter.format(now);
       const [year, month, day] = dateStr.split("-").map(Number);
       // Use UTC offset at noon to avoid DST edge-cases within a single day
       const noonUTC = new Date(Date.UTC(year, month - 1, day, 12));
