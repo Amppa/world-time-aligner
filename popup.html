@@ -27,18 +27,13 @@
     <section id="settingsPanel" class="settings-panel" aria-label="Map Settings" data-i18n-aria-label="mapParams"
       hidden>
       <!-- 1. Language -->
-      <details open>
-        <summary data-i18n="langSection">1. Language</summary>
-        <div class="details-content">
-          <label class="lang-control">
-            <span data-i18n="language">Language</span>
-            <select id="langSelect">
-              <option value="zh" data-i18n="langZh">Traditional Chinese</option>
-              <option value="en" data-i18n="langEn">English</option>
-            </select>
-          </label>
+      <div class="settings-group lang-group">
+        <span class="settings-group-title" data-i18n="langSection">1. Language</span>
+        <div class="lang-buttons">
+          <button type="button" class="lang-btn" data-lang="en">English</button>
+          <button type="button" class="lang-btn" data-lang="zh">繁體中文</button>
         </div>
-      </details>
+      </div>
 
       <!-- 2. City Position Offset -->
       <details>

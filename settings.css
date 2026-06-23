@@ -109,7 +109,8 @@ h1 {
   background: var(--panel);
 }
 
-.settings-panel details {
+.settings-panel details,
+.settings-panel .settings-group {
   border: 1px solid var(--line);
   border-radius: 6px;
   margin-bottom: 8px;
@@ -117,8 +118,29 @@ h1 {
   overflow: hidden;
 }
 
-.settings-panel details:last-child {
+.settings-panel details:last-child,
+.settings-panel .settings-group:last-child {
   margin-bottom: 0;
+}
+
+.settings-panel .settings-group.lang-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fbfcfa;
+}
+
+.settings-group-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  user-select: none;
+}
+
+.lang-buttons {
+  display: flex;
+  gap: 6px;
 }
 
 .settings-panel details[open] {
@@ -173,14 +195,30 @@ h1 {
   color: var(--muted);
 }
 
-.lang-control select {
-  padding: 4px 8px;
+.lang-btn {
+  padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--panel);
-  color: var(--ink);
-  font-size: 12px;
+  background: #ffffff;
+  color: var(--muted);
   cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.lang-btn:hover {
+  border-color: AccentColor;
+  color: AccentColor;
+  background: #fcfdfc;
+}
+
+.lang-btn.active {
+  background: AccentColor;
+  border-color: AccentColor;
+  color: AccentColorText;
+  font-weight: 600;
 }
 
 .settings-grid {

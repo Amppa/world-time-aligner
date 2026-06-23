@@ -52,7 +52,7 @@ const DOM = {
   searchCityInput: document.querySelector("#searchCityInput"),
   searchCityBtn: document.querySelector("#searchCityBtn"),
   searchResultsList: document.querySelector("#searchResultsList"),
-  langSelect: document.querySelector("#langSelect"),
+  langButtons: document.querySelectorAll(".lang-btn"),
   nowLineModeSelect: document.querySelector("#nowLineModeSelect"),
   mapImg: document.querySelector(".world-map"),
   mapShell: document.querySelector(".map-shell"),
@@ -1450,11 +1450,19 @@ const AppController = {
     this.wireMapTimezoneHover();
     Renderer.renderSettingsControls();
 
-    DOM.langSelect.value = State.currentLang;
-    DOM.langSelect.addEventListener("change", (e) => {
-      State.saveLanguage(e.target.value);
-      Renderer.applyLanguage();
-      Renderer.render();
+    DOM.langButtons.forEach((btn) => {
+      if (btn.dataset.lang === State.currentLang) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+      btn.addEventListener("click", () => {
+        DOM.langButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        State.saveLanguage(btn.dataset.lang);
+        Renderer.applyLanguage();
+        Renderer.render();
+      });
     });
 
     // Now-line reference mode toggle
