@@ -752,13 +752,23 @@ const Renderer = {
     });
   },
 
-  renderTimezoneLines() {
+  renderTimezoneLines(offsetHours = 0) {
     if (!DOM.timezoneLines) return;
     DOM.timezoneLines.innerHTML = "";
     DOM.timezoneLines.style.backgroundImage = "none";
 
-    for (let offset = -12; offset <= 12; offset++) {
-      const lng = offset * 15 - 7.5;
+    const time = new Date();
+    time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
+
+    const subsolarLng = -(time.getUTCHours() + time.getUTCMinutes() / 60 - 12) * 15;
+    const centerLng = MapUtils.getXLongitude(50);
+
+    for (let h = 0; h < 24; h += 2) {
+      const baseLng = subsolarLng + (h - 12) * 15;
+      let diff = baseLng - centerLng;
+      diff = ((diff + 180) % 360 + 360) % 360 - 180;
+      const lng = centerLng + diff;
+
       const x = MathUtils.clamp(MapUtils.getLongitudeX(lng), 0, 100);
 
       const line = document.createElement("div");
@@ -830,6 +840,7 @@ const Renderer = {
     if (!DOM.nightPath) return;
 
     this.renderMapTimeline(offsetHours);
+    this.renderTimezoneLines(offsetHours);
 
     if (DOM.dayNightOverlay) {
       DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
@@ -851,7 +862,6 @@ const Renderer = {
     State.makeBaseHours();
     this.renderNowText();
     this.renderMap();
-    this.renderTimezoneLines();
     this.renderRows();
     this.renderCustomCityEditor();
     this.renderPeriodSettings();
@@ -1197,10 +1207,16 @@ const AppController = {
         if (relativeX >= 0 && relativeX <= 1) {
           const x = relativeX * 100;
           const lng = MapUtils.getXLongitude(x);
-          const offset = MathUtils.clamp(Math.round(lng / 15), -12, 12);
 
-          const x_left = MathUtils.clamp(MapUtils.getLongitudeX(offset * 15 - 7.5), 0, 100);
-          const x_right = MathUtils.clamp(MapUtils.getLongitudeX(offset * 15 + 7.5), 0, 100);
+          const time = new Date();
+          const offsetHours = State.selectedOffsetHours || 0;
+          time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
+          const subsolarLng = -(time.getUTCHours() + time.getUTCMinutes() / 60 - 12) * 15;
+
+          const k = Math.round((lng - subsolarLng) / 15);
+
+          const x_left = MathUtils.clamp(MapUtils.getLongitudeX(subsolarLng + (k - 0.5) * 15), 0, 100);
+          const x_right = MathUtils.clamp(MapUtils.getLongitudeX(subsolarLng + (k + 0.5) * 15), 0, 100);
 
           DOM.timezoneHoverBar.style.left = `${x_left}%`;
           DOM.timezoneHoverBar.style.width = `${x_right - x_left}%`;
