@@ -321,8 +321,8 @@ const AppController = {
           const x_left = MathUtils.clamp(MapUtils.getLongitudeX(subsolarLng + (k - 0.5) * 15), 0, 100);
           const x_right = MathUtils.clamp(MapUtils.getLongitudeX(subsolarLng + (k + 0.5) * 15), 0, 100);
 
-          DOM.timezoneHoverBar.style.left = `${x_left}%`;
-          DOM.timezoneHoverBar.style.width = `${x_right - x_left}%`;
+          const scale = (x_right - x_left) / 100;
+          DOM.timezoneHoverBar.style.transform = `translateX(${x_left}%) scaleX(${scale})`;
           DOM.timezoneHoverBar.hidden = false;
         } else {
           DOM.timezoneHoverBar.hidden = true;
