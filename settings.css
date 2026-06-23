@@ -634,16 +634,41 @@ h1 {
 
 .settings-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-top: 10px;
+}
+
+.city-limit-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  user-select: none;
+}
+
+.city-limit-input {
+  width: 50px;
+  min-height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.city-limit-input:focus {
+  border-color: var(--accent);
 }
 
 .checkbox-group {
   display: flex;
   gap: 16px;
   margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #f0f3f1;
 }
 
 .checkbox-control {

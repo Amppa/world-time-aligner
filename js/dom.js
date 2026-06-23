@@ -18,6 +18,7 @@ const DOM = {
   resetPeriodsButton: document.querySelector("#resetPeriodsButton"),
   currentCitiesList: document.querySelector("#currentCitiesList"),
   searchCityInput: document.querySelector("#searchCityInput"),
+  cityLimitInput: document.querySelector("#cityLimitInput"),
   searchCityBtn: document.querySelector("#searchCityBtn"),
   searchResultsList: document.querySelector("#searchResultsList"),
   langButtons: document.querySelectorAll(".lang-btn"),

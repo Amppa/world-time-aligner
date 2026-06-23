@@ -213,10 +213,29 @@ const AppController = {
     });
   },
 
+  wireCityLimit() {
+    if (!DOM.cityLimitInput) return;
+    DOM.cityLimitInput.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val) && val > 0) {
+        State.saveCityLimit(val);
+      }
+    });
+    DOM.cityLimitInput.addEventListener("change", (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val) && val > 0) {
+        State.saveCityLimit(val);
+      } else {
+        e.target.value = String(State.cityLimit);
+      }
+    });
+  },
+
   wireSettings() {
     this.wireMapSettings();
     this.wireCitySearch();
     this.wireCitiesDragOver();
+    this.wireCityLimit();
   },
 
   wireScrubLine() {
@@ -404,7 +423,7 @@ const AppController = {
     }
 
     DOM.resetButton.addEventListener("click", () => {
-      State.selectedIds = [...CONFIG.defaultSelection];
+      State.selectedIds = [...CONFIG.defaultSelection].slice(0, State.cityLimit);
       State.saveSelection();
       Renderer.render();
     });

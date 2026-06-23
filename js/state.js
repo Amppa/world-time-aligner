@@ -13,12 +13,14 @@ const State = {
   nowLineMode: "local",   // 'local' | 'firstCity'
   scrubFraction: null,    // 0.0 ~ 1.0 position on 0-24hr axis, null = follow now
   draggingId: null,
+  cityLimit: 6,
 
   init() {
     this.currentLang = this.loadLanguage();
     this.timePeriods = this.loadTimePeriods();
     this.mapSettings = this.loadMapSettings();
     this.customCities = this.loadCustomCities();
+    this.cityLimit = this.loadCityLimit();
     this.selectedIds = this.loadSelection();
     this.nowLineMode = this.loadNowLineMode();
     this.selectedOffsetHours = null;
@@ -115,12 +117,12 @@ const State = {
     try {
       const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey));
       if (Array.isArray(saved)) {
-        return saved.filter((id) => this.allCities().some((city) => city.id === id)).slice(0, CONFIG.maxCities);
+        return saved.filter((id) => this.allCities().some((city) => city.id === id)).slice(0, this.cityLimit);
       }
     } catch {
       localStorage.removeItem(CONFIG.storageKey);
     }
-    return [...CONFIG.defaultSelection];
+    return [...CONFIG.defaultSelection].slice(0, this.cityLimit);
   },
 
   saveSelection() {
@@ -185,9 +187,39 @@ const State = {
         this.saveCustomCities();
       }
     } else {
-      this.selectedIds = [...this.selectedIds.slice(-(CONFIG.maxCities - 1)), id];
+      if (this.selectedIds.length >= this.cityLimit) {
+        this.selectedIds = [...this.selectedIds.slice(-(this.cityLimit - 1)), id];
+      } else {
+        this.selectedIds = [...this.selectedIds, id];
+      }
     }
     this.saveSelection();
     Renderer.render();
+  },
+
+  loadCityLimit() {
+    try {
+      const saved = localStorage.getItem("worldTimeAlignerCityLimit");
+      if (saved !== null) {
+        const val = parseInt(saved, 10);
+        if (val > 0) return val;
+      }
+    } catch { }
+    return CONFIG.maxCities;
+  },
+
+  saveCityLimit(val) {
+    const limit = parseInt(val, 10);
+    if (isNaN(limit) || limit <= 0) return;
+    this.cityLimit = limit;
+    try {
+      localStorage.setItem("worldTimeAlignerCityLimit", String(limit));
+    } catch { }
+
+    if (this.selectedIds.length > this.cityLimit) {
+      this.selectedIds = this.selectedIds.slice(0, this.cityLimit);
+      this.saveSelection();
+      Renderer.render();
+    }
   }
 };

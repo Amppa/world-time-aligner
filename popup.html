@@ -103,7 +103,7 @@
             <div id="currentCitiesList" class="current-cities-list"></div>
           </div>
 
-          <div class="add-city-section" style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px;">
+          <div class="add-city-section" style="margin-top: 16px;">
             <h4 data-i18n="addCityTitle">Add City</h4>
             <div class="search-container">
               <div class="search-bar-row">
@@ -116,8 +116,13 @@
           </div>
 
           <div class="settings-actions" style="margin-top: 16px;">
-            <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">Reset Cities</button>
+            <label class="city-limit-control">
+              <span data-i18n="cityLimitLabel">城市數量上限：</span>
+              <input id="cityLimitInput" type="number" min="1" max="100" class="city-limit-input">
+            </label>
+            <div style="flex: 1;"></div>
             <button id="clearAllButton" class="text-button" type="button" data-i18n="clearAllBtn">Clear All</button>
+            <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">Reset Cities</button>
           </div>
         </div>
       </details>

@@ -31,13 +31,14 @@ const i18nTranslations = {
     searchPlaceholder: "例如：London 或 Tokyo",
     timePeriodSection: "4. 時段設定",
     resetTimePeriods: "恢復預設",
-    resetCitiesBtn: "預設城市",
+    resetCitiesBtn: "範例",
     clearAllBtn: "清除全部",
     worldMapTitle: "世界地圖",
     cityNotFound: "找不到該城市",
     resetScrubLine: "重設為目前時間",
     showNightArea: "顯示夜間範圍",
-    showHourLines: "顯示小時線"
+    showHourLines: "顯示小時線",
+    cityLimitLabel: "城市數量上限："
   },
   en: {
     nowTextLoading: "Loading current time...",
@@ -71,13 +72,14 @@ const i18nTranslations = {
     searchPlaceholder: "e.g., London or Tokyo",
     timePeriodSection: "4. Time Period Settings",
     resetTimePeriods: "Reset Time Period Colors",
-    resetCitiesBtn: "Reset Cities",
+    resetCitiesBtn: "Example",
     clearAllBtn: "Clear All",
     worldMapTitle: "World Map",
     cityNotFound: "City not found",
     resetScrubLine: "Reset to current time",
     showNightArea: "Show Night Area",
-    showHourLines: "Show Hour Lines"
+    showHourLines: "Show Hour Lines",
+    cityLimitLabel: "Max Cities: "
   }
 };
 

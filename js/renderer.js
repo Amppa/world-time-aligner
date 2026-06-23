@@ -73,7 +73,7 @@ const Renderer = {
     return State.mapSettings[key].toFixed(1);
   },
 
-  renderSettingsControls() {
+   renderSettingsControls() {
     document.querySelectorAll("[data-setting]").forEach((input) => {
       const key = input.dataset.setting;
       if (input.type === "checkbox") {
@@ -87,6 +87,11 @@ const Renderer = {
       const key = output.dataset.output;
       output.textContent = this.formatSettingValue(key);
     });
+
+    const cityLimitInput = document.querySelector("#cityLimitInput");
+    if (cityLimitInput) {
+      cityLimitInput.value = String(State.cityLimit);
+    }
   },
 
   renderRows() {
