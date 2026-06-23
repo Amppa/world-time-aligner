@@ -390,7 +390,7 @@ h1 {
   opacity: .96;
 }
 
-.time-zone-lines {
+.hour-lines {
   position: absolute;
   inset: 0;
   background-image: repeating-linear-gradient(90deg,

@@ -59,7 +59,7 @@ const DOM = {
   mapImg: document.querySelector(".world-map"),
   mapShell: document.querySelector(".map-shell"),
   timezoneHoverBar: document.querySelector("#timezoneHoverBar"),
-  timezoneLines: document.querySelector(".time-zone-lines"),
+  hourLines: document.querySelector(".hour-lines"),
   dayNightOverlay: document.querySelector("#dayNightOverlay"),
   nightPath: document.querySelector("#nightPath"),
   nightPathRef: document.querySelector("#nightPathRef"),
@@ -752,10 +752,10 @@ const Renderer = {
     });
   },
 
-  renderTimezoneLines(offsetHours = 0) {
-    if (!DOM.timezoneLines) return;
-    DOM.timezoneLines.innerHTML = "";
-    DOM.timezoneLines.style.backgroundImage = "none";
+  renderHourLines(offsetHours = 0) {
+    if (!DOM.hourLines) return;
+    DOM.hourLines.innerHTML = "";
+    DOM.hourLines.style.backgroundImage = "none";
 
     const time = new Date();
     time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
@@ -778,7 +778,7 @@ const Renderer = {
       line.style.bottom = "0";
       line.style.width = "1px";
       line.style.backgroundColor = "rgba(8, 74, 96, 0.18)";
-      DOM.timezoneLines.append(line);
+      DOM.hourLines.append(line);
     }
   },
 
@@ -840,7 +840,7 @@ const Renderer = {
     if (!DOM.nightPath) return;
 
     this.renderMapTimeline(offsetHours);
-    this.renderTimezoneLines(offsetHours);
+    this.renderHourLines(offsetHours);
 
     if (DOM.dayNightOverlay) {
       DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
