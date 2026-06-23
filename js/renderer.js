@@ -253,16 +253,20 @@ const Renderer = {
         e.dataTransfer.dropEffect = "move";
 
         if (State.draggingId && State.draggingId !== id) {
-          // Defensive cleanup: ensure no other card has indicator lines visible
-          document.querySelectorAll(".current-city-card").forEach(c => {
-            if (c !== card) {
-              c.classList.remove("drag-over-top", "drag-over-bottom");
-            }
-          });
+          // Optimize cleanup: clear indicators of the last active card without querySelector loop
+          if (State.lastActiveCard && State.lastActiveCard !== card) {
+            State.lastActiveCard.classList.remove("drag-over-top", "drag-over-bottom");
+            State.lastActiveCard._cachedRect = null;
+          }
+          State.lastActiveCard = card;
 
-          const rect = card.getBoundingClientRect();
-          const relativeY = e.clientY - rect.top;
-          const middleY = rect.height / 2;
+          // Optimize layout thrashing: cache bounding rect
+          if (!card._cachedRect) {
+            card._cachedRect = card.getBoundingClientRect();
+          }
+
+          const relativeY = e.clientY - card._cachedRect.top;
+          const middleY = card._cachedRect.height / 2;
 
           if (relativeY < middleY) {
             card.classList.add("drag-over-top");
@@ -280,6 +284,10 @@ const Renderer = {
 
       card.addEventListener("dragleave", () => {
         card.classList.remove("drag-over-top", "drag-over-bottom");
+        card._cachedRect = null;
+        if (State.lastActiveCard === card) {
+          State.lastActiveCard = null;
+        }
       });
 
       card.addEventListener("dragend", () => {
@@ -289,8 +297,10 @@ const Renderer = {
         }
         document.querySelectorAll(".current-city-card").forEach(c => {
           c.classList.remove("drag-over-top", "drag-over-bottom");
+          c._cachedRect = null;
         });
         State.draggingId = null;
+        State.lastActiveCard = null;
       });
 
       card.addEventListener("drop", (e) => {
@@ -321,8 +331,10 @@ const Renderer = {
         }
         document.querySelectorAll(".current-city-card").forEach(c => {
           c.classList.remove("drag-over-top", "drag-over-bottom");
+          c._cachedRect = null;
         });
         State.draggingId = null;
+        State.lastActiveCard = null;
       });
 
       updateBtn.addEventListener("click", () => {

@@ -14,6 +14,7 @@ const State = {
   scrubFraction: null,    // 0.0 ~ 1.0 position on 0-24hr axis, null = follow now
   draggingId: null,
   cityLimit: 6,
+  lastActiveCard: null,
 
   init() {
     this.currentLang = this.loadLanguage();
@@ -26,6 +27,7 @@ const State = {
     this.selectedOffsetHours = null;
     this.scrubFraction = null;
     this.draggingId = null;
+    this.lastActiveCard = null;
     this.makeBaseHours();
   },
 

@@ -316,6 +316,11 @@ h1 {
   pointer-events: none;
 }
 
+/* Disable transitions during active drag to save rendering overhead */
+.current-cities-list.is-dragging-active .current-city-card {
+  transition: none !important;
+}
+
 /* Expanded invisible hover hitbox to cover card gaps during drag and prevent flickering */
 .current-cities-list.is-dragging-active .current-city-card::before {
   content: "";
