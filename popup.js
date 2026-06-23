@@ -62,7 +62,7 @@ const DOM = {
   mapShell: document.querySelector(".map-shell"),
   timezoneHoverBar: document.querySelector("#timezoneHoverBar"),
   hourLines: document.querySelector(".hour-lines"),
-  dayNightOverlay: document.querySelector("#dayNightOverlay"),
+  nightAreaOverlay: document.querySelector("#nightAreaOverlay"),
   nightPath: document.querySelector("#nightPath"),
   nightPathRef: document.querySelector("#nightPathRef"),
   mapTimeline: document.querySelector("#mapTimeline")
@@ -790,8 +790,8 @@ const Renderer = {
     }
   },
 
-  /** Returns the SVG point array for the day-night boundary at a given hour offset from now. */
-  _calcNightBoundaryPoints(offsetHours) {
+  /** Returns the SVG point array for the night area boundary at a given hour offset from now. */
+  _calcNightAreaBoundaryPoints(offsetHours) {
     const time = new Date();
     time.setTime(time.getTime() + offsetHours * 60 * 60 * 1000);
 
@@ -844,31 +844,31 @@ const Renderer = {
     }
   },
 
-  renderDayNight(offsetHours = 0) {
+  renderNightArea(offsetHours = 0) {
     if (!DOM.nightPath) return;
 
     this.renderMapTimeline(offsetHours);
     this.renderHourLines(offsetHours);
 
-    if (DOM.dayNightOverlay) {
-      DOM.dayNightOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
+    if (DOM.nightAreaOverlay) {
+      DOM.nightAreaOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
     }
 
     // Filled night area — follows the scrub line offset
-    const pts = this._calcNightBoundaryPoints(offsetHours);
+    const pts = this._calcNightAreaBoundaryPoints(offsetHours);
     DOM.nightPath.setAttribute("d", `M 0,100 L ${pts.join(" L ")} L 100,100 Z`);
 
     // Static reference curve — always at the true "now" position (offset = 0)
     if (DOM.nightPathRef) {
-      const refPts = this._calcNightBoundaryPoints(0);
+      const refPts = this._calcNightAreaBoundaryPoints(0);
       DOM.nightPathRef.setAttribute("d", `M ${refPts.join(" L ")}`);
     }
   },
 
 
   applyVisibilitySettings() {
-    if (DOM.dayNightOverlay) {
-      DOM.dayNightOverlay.style.display = State.mapSettings.showNightArea ? "" : "none";
+    if (DOM.nightAreaOverlay) {
+      DOM.nightAreaOverlay.style.display = State.mapSettings.showNightArea ? "" : "none";
     }
     if (DOM.hourLines) {
       DOM.hourLines.style.display = State.mapSettings.showHourLines ? "" : "none";
@@ -885,7 +885,7 @@ const Renderer = {
     // Render lines after layout is established
     this.renderNowLine();
     this.renderScrubLine();
-    this.renderDayNight(State.selectedOffsetHours || 0);
+    this.renderNightArea(State.selectedOffsetHours || 0);
     this.applyVisibilitySettings();
   },
 
@@ -937,7 +937,7 @@ const Renderer = {
       DOM.scrubResetBtn.style.left = `${left}px`;
     }
 
-    // Compute day-night offset relative to real now
+    // Compute night area offset relative to real now
     const nowFraction = TimelineUtils.getNowFraction();
     State.selectedOffsetHours = (fraction - nowFraction) * 24;
   }
@@ -1171,7 +1171,7 @@ const AppController = {
       e.preventDefault();
       State.scrubFraction = null;   // null = snap to now
       Renderer.renderScrubLine();
-      Renderer.renderDayNight(State.selectedOffsetHours || 0);
+      Renderer.renderNightArea(State.selectedOffsetHours || 0);
     });
 
     if (DOM.scrubResetBtn) {
@@ -1180,7 +1180,7 @@ const AppController = {
         e.stopPropagation();
         State.scrubFraction = null;   // null = snap to now
         Renderer.renderScrubLine();
-        Renderer.renderDayNight(State.selectedOffsetHours || 0);
+        Renderer.renderNightArea(State.selectedOffsetHours || 0);
       });
       DOM.scrubResetBtn.addEventListener("mousedown", (e) => {
         e.stopPropagation();
@@ -1211,10 +1211,10 @@ const AppController = {
         DOM.scrubResetBtn.classList.add("is-visible");
       }
 
-      // Live-update day-night overlay
+      // Live-update night area overlay
       const nowFraction = TimelineUtils.getNowFraction();
       State.selectedOffsetHours = (State.scrubFraction - nowFraction) * 24;
-      Renderer.renderDayNight(State.selectedOffsetHours);
+      Renderer.renderNightArea(State.selectedOffsetHours);
     });
 
     // Mouseup: end drag

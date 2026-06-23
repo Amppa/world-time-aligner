@@ -401,7 +401,7 @@ h1 {
   pointer-events: none;
 }
 
-.day-night-overlay {
+.night-area-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -410,13 +410,13 @@ h1 {
   z-index: 1;
 }
 
-.day-night-overlay path {
+.night-area-overlay path {
   fill: rgba(0, 0, 0, 0.32);
   stroke: none;
 }
 
-/* Static reference curve: shows the day-night boundary at the true "now" time */
-.day-night-overlay #nightPathRef {
+/* Static reference curve: shows the night area boundary at the true "now" time */
+.night-area-overlay #nightPathRef {
   fill: none;
   stroke: rgba(0, 0, 0, 0.5);
   stroke-width: 1;
@@ -594,7 +594,7 @@ h1 {
   box-shadow: 1px 0 6px rgba(9, 101, 105, 0.30);
 }
 
-/* Scrub Line — draggable teal dashed line (day-night controller) */
+/* Scrub Line — draggable teal dashed line (night area controller) */
 .scrub-line {
   border-left: 2px dashed rgba(9, 101, 105, 0.88);
   transition: border-color 0.15s, box-shadow 0.15s;

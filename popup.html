@@ -217,7 +217,7 @@
         <div class="map-shell">
           <img class="world-map" src="assets/world-map.jpg" alt="World Map" data-i18n-alt="worldMapAlt">
           <div class="hour-lines" aria-hidden="true"></div>
-          <svg id="dayNightOverlay" class="day-night-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"
+          <svg id="nightAreaOverlay" class="night-area-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"
             aria-hidden="true">
             <path id="nightPath" d=""></path>
             <path id="nightPathRef" d=""></path>
@@ -233,10 +233,10 @@
       <div id="timelineRows" class="timeline-rows"></div>
       <!-- Now Line: always visible, shows current time of reference timezone -->
       <div id="nowLine" class="timeline-vline now-line" aria-hidden="true"></div>
-      <!-- Scrub Line: draggable, controls day-night overlay offset -->
+      <!-- Scrub Line: draggable, controls night area overlay offset -->
       <div id="scrubLine" class="timeline-vline scrub-line" aria-hidden="true"></div>
       <!-- Scrub Handle: wider hit area for drag interaction -->
-      <div id="scrubHandle" class="scrub-handle" aria-label="Drag to shift day-night view"></div>
+      <div id="scrubHandle" class="scrub-handle" aria-label="Drag to shift night area view"></div>
       <!-- Scrub Reset Button: small [x] shown below the scrub line when dragged -->
       <button id="scrubResetBtn" class="scrub-reset-btn" type="button" title="Reset to current time"
         aria-label="Reset to current time" data-i18n-title="resetScrubLine"
