@@ -81,6 +81,9 @@ const AppController = {
     DOM.resetMapButton.addEventListener("click", () => {
       State.mapSettings = { ...CONFIG.defaultMapSettings };
       State.saveMapSettings();
+      if (DOM.mapPanel) {
+        DOM.mapPanel.open = !State.mapSettings.mapCollapsed;
+      }
       Renderer.renderSettingsControls();
       Renderer.renderMap();
       Renderer.render();
@@ -349,6 +352,14 @@ const AppController = {
 
   init() {
     State.init();
+
+    if (DOM.mapPanel) {
+      DOM.mapPanel.open = !State.mapSettings.mapCollapsed;
+      DOM.mapPanel.addEventListener("toggle", () => {
+        State.mapSettings.mapCollapsed = !DOM.mapPanel.open;
+        State.saveMapSettings();
+      });
+    }
 
     this.wireSettings();
     this.wireScrubLine();
