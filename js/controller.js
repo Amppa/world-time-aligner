@@ -202,9 +202,21 @@ const AppController = {
     });
   },
 
+  wireCitiesDragOver() {
+    if (!DOM.currentCitiesList) return;
+    DOM.currentCitiesList.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    DOM.currentCitiesList.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+    });
+  },
+
   wireSettings() {
     this.wireMapSettings();
     this.wireCitySearch();
+    this.wireCitiesDragOver();
   },
 
   wireScrubLine() {

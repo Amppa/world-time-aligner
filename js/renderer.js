@@ -238,44 +238,85 @@ const Renderer = {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", id);
         card.classList.add("is-dragging");
+        if (DOM.currentCitiesList) {
+          DOM.currentCitiesList.classList.add("is-dragging-active");
+        }
       });
 
       card.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
+
+        if (State.draggingId && State.draggingId !== id) {
+          // Defensive cleanup: ensure no other card has indicator lines visible
+          document.querySelectorAll(".current-city-card").forEach(c => {
+            if (c !== card) {
+              c.classList.remove("drag-over-top", "drag-over-bottom");
+            }
+          });
+
+          const rect = card.getBoundingClientRect();
+          const relativeY = e.clientY - rect.top;
+          const middleY = rect.height / 2;
+
+          if (relativeY < middleY) {
+            card.classList.add("drag-over-top");
+            card.classList.remove("drag-over-bottom");
+          } else {
+            card.classList.add("drag-over-bottom");
+            card.classList.remove("drag-over-top");
+          }
+        }
       });
 
       card.addEventListener("dragenter", (e) => {
         e.preventDefault();
-        card.classList.add("drag-over");
       });
 
       card.addEventListener("dragleave", () => {
-        card.classList.remove("drag-over");
+        card.classList.remove("drag-over-top", "drag-over-bottom");
       });
 
       card.addEventListener("dragend", () => {
         card.classList.remove("is-dragging");
-        document.querySelectorAll(".current-city-card").forEach(c => c.classList.remove("drag-over"));
+        if (DOM.currentCitiesList) {
+          DOM.currentCitiesList.classList.remove("is-dragging-active");
+        }
+        document.querySelectorAll(".current-city-card").forEach(c => {
+          c.classList.remove("drag-over-top", "drag-over-bottom");
+        });
         State.draggingId = null;
       });
 
       card.addEventListener("drop", (e) => {
         e.preventDefault();
-        card.classList.remove("drag-over");
         const draggedId = State.draggingId;
         if (draggedId && draggedId !== id) {
           const oldIndex = State.selectedIds.indexOf(draggedId);
           const newIndex = State.selectedIds.indexOf(id);
           if (oldIndex !== -1 && newIndex !== -1) {
+            const dropTop = card.classList.contains("drag-over-top");
+            let insertIndex;
+            if (oldIndex < newIndex) {
+              insertIndex = dropTop ? newIndex - 1 : newIndex;
+            } else {
+              insertIndex = dropTop ? newIndex : newIndex + 1;
+            }
+
             const list = [...State.selectedIds];
             list.splice(oldIndex, 1);
-            list.splice(newIndex, 0, draggedId);
+            list.splice(insertIndex, 0, draggedId);
             State.selectedIds = list;
             State.saveSelection();
             Renderer.render();
           }
         }
+        if (DOM.currentCitiesList) {
+          DOM.currentCitiesList.classList.remove("is-dragging-active");
+        }
+        document.querySelectorAll(".current-city-card").forEach(c => {
+          c.classList.remove("drag-over-top", "drag-over-bottom");
+        });
         State.draggingId = null;
       });
 

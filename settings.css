@@ -286,6 +286,7 @@ h1 {
 }
 
 .current-city-card {
+  position: relative;
   display: grid;
   grid-template-columns: 20px 1.2fr 1.6fr 58px 58px auto auto;
   gap: 6px;
@@ -310,10 +311,49 @@ h1 {
   background: #eef2f0;
 }
 
-.current-city-card.drag-over {
-  border-color: var(--accent);
-  background: #f0f7f4;
-  border-style: dashed;
+/* Pointer events disabled for children during active drag to avoid flicker */
+.current-cities-list.is-dragging-active .current-city-card * {
+  pointer-events: none;
+}
+
+/* Expanded invisible hover hitbox to cover card gaps during drag and prevent flickering */
+.current-cities-list.is-dragging-active .current-city-card::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  background: transparent;
+  z-index: 1;
+  pointer-events: auto !important;
+}
+
+/* Chrome standard blue insert indicators (using ::after) */
+.current-city-card.drag-over-top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5px;
+  height: 3px;
+  background-color: #1a73e8;
+  border-radius: 1.5px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.current-city-card.drag-over-bottom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 3px;
+  background-color: #1a73e8;
+  border-radius: 1.5px;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .drag-handle {
