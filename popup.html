@@ -99,39 +99,26 @@
         </div>
       </details>
 
-      <!-- 3. Custom Cities -->
+      <!-- 3. Cities Timeline -->
       <details>
-        <summary data-i18n="customCitySection">3. Custom Cities</summary>
+        <summary data-i18n="customCitySection">3. Cities Timeline</summary>
         <div class="details-content">
-          <div class="custom-city-form">
-            <label>
-              <span data-i18n="cityName">城市名(英文)</span>
-              <div style="display: flex; gap: 4px; position: relative;">
-                <input id="customCityName" type="text" placeholder="e.g. Hong Kong"
-                  data-i18n-placeholder="cityNamePlaceholder" maxlength="20" style="flex: 1; min-width: 0;">
-                <button id="searchCityButton" type="button"
-                  style="padding: 0 8px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfa; cursor: pointer; color: var(--accent-dark); flex-shrink: 0;"
-                  title="Auto-fill timezone and coordinates">🔍</button>
-                <div id="searchSuggestions" class="search-suggestions" hidden></div>
-              </div>
-            </label>
-            <label>
-              <span data-i18n="timezone">Timezone</span>
-              <input id="customCityZone" type="text" placeholder="e.g. Asia/Hong_Kong"
-                data-i18n-placeholder="timezonePlaceholder" maxlength="40">
-            </label>
-            <label>
-              <span>X</span>
-              <input id="customCityX" type="number" min="0" max="100" step="0.1" value="50">
-            </label>
-            <label>
-              <span>Y</span>
-              <input id="customCityY" type="number" min="0" max="100" step="0.1" value="50">
-            </label>
-            <button id="addCustomCityButton" class="text-button" type="button" data-i18n="addCity">Add City</button>
+          <div class="current-cities-container">
+            <h4 data-i18n="currentCitiesTitle">Current Cities</h4>
+            <div id="currentCitiesList" class="current-cities-list"></div>
           </div>
-          <div id="customCityList" class="custom-city-list" aria-label="Custom City List"></div>
-          <div class="settings-actions" style="margin-top: 12px;">
+
+          <div class="add-city-section" style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px;">
+            <h4 data-i18n="addCityTitle">Add City</h4>
+            <div class="search-bar-row">
+              <input id="searchCityInput" type="text" placeholder="e.g. London"
+                data-i18n-placeholder="searchPlaceholder" maxlength="40">
+              <button id="searchCityBtn" type="button" data-i18n="searchBtn">Search</button>
+            </div>
+            <div id="searchResultsList" class="search-results-list" hidden></div>
+          </div>
+
+          <div class="settings-actions" style="margin-top: 16px;">
             <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">Reset Cities</button>
             <button id="clearAllButton" class="text-button" type="button" data-i18n="clearAllBtn">Clear All</button>
           </div>

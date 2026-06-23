@@ -48,14 +48,10 @@ const DOM = {
   settingsPanel: document.querySelector("#settingsPanel"),
   resetMapButton: document.querySelector("#resetMapButton"),
   resetPeriodsButton: document.querySelector("#resetPeriodsButton"),
-  customCityName: document.querySelector("#customCityName"),
-  customCityZone: document.querySelector("#customCityZone"),
-  customCityX: document.querySelector("#customCityX"),
-  customCityY: document.querySelector("#customCityY"),
-  addCustomCityButton: document.querySelector("#addCustomCityButton"),
-  searchCityButton: document.querySelector("#searchCityButton"),
-  searchSuggestions: document.querySelector("#searchSuggestions"),
-  customCityList: document.querySelector("#customCityList"),
+  currentCitiesList: document.querySelector("#currentCitiesList"),
+  searchCityInput: document.querySelector("#searchCityInput"),
+  searchCityBtn: document.querySelector("#searchCityBtn"),
+  searchResultsList: document.querySelector("#searchResultsList"),
   langSelect: document.querySelector("#langSelect"),
   nowLineModeSelect: document.querySelector("#nowLineModeSelect"),
   mapImg: document.querySelector(".world-map"),
@@ -289,6 +285,19 @@ const MapUtils = {
   getXLongitude(x) {
     const cx = 50 + (x - 50 - State.mapSettings.lngOffset) / State.mapSettings.widthScale;
     return (cx - 46.2357) / 0.2816;
+  },
+
+  getCityCoordinates(city) {
+    let lng = city.lng;
+    let lat = city.lat;
+    if (typeof lng !== "number" || typeof lat !== "number") {
+      // Reverse calculate from x, y
+      lng = (city.x - 46.2357) / 0.2816;
+      lat = (city.y - 63.3239) / -0.5257;
+    }
+    const lngText = lng >= 0 ? `${lng.toFixed(1)}°E` : `${Math.abs(lng).toFixed(1)}°W`;
+    const latText = lat >= 0 ? `${lat.toFixed(1)}°N` : `${Math.abs(lat).toFixed(1)}°S`;
+    return `${lngText}, ${latText}`;
   }
 };
 
@@ -365,6 +374,7 @@ const State = {
   selectedOffsetHours: null,
   nowLineMode: "local",   // 'local' | 'firstCity'
   scrubFraction: null,    // 0.0 ~ 1.0 position on 0-24hr axis, null = follow now
+  draggingId: null,
 
   init() {
     this.currentLang = this.loadLanguage();
@@ -375,6 +385,7 @@ const State = {
     this.nowLineMode = this.loadNowLineMode();
     this.selectedOffsetHours = null;
     this.scrubFraction = null;
+    this.draggingId = null;
     this.makeBaseHours();
   },
 
@@ -446,7 +457,9 @@ const State = {
             name: city.name,
             zone: city.zone,
             x: Number.isFinite(Number(city.x)) ? Number(city.x) : 50,
-            y: Number.isFinite(Number(city.y)) ? Number(city.y) : 50
+            y: Number.isFinite(Number(city.y)) ? Number(city.y) : 50,
+            lng: Number.isFinite(Number(city.lng)) ? Number(city.lng) : undefined,
+            lat: Number.isFinite(Number(city.lat)) ? Number(city.lat) : undefined
           }));
       }
     } catch {
@@ -686,54 +699,191 @@ const Renderer = {
     });
   },
 
-  renderCustomCityEditor() {
-    DOM.customCityList.innerHTML = "";
-    State.customCities.forEach((city) => {
-      const item = document.createElement("div");
-      item.className = "custom-city-item";
-      item.innerHTML = `
-        <input data-field="name" value="${city.name.replaceAll('"', "&quot;")}">
-        <input data-field="zone" value="${city.zone.replaceAll('"', "&quot;")}">
-        <input data-field="x" type="number" min="0" max="100" step="0.1" value="${city.x}">
-        <input data-field="y" type="number" min="0" max="100" step="0.1" value="${city.y}">
-        <button type="button">${I18nUtils.getTranslation("updateBtn")}</button>
-        <button type="button">${I18nUtils.getTranslation("deleteBtn")}</button>
+  renderCurrentCitiesList() {
+    if (!DOM.currentCitiesList) return;
+    DOM.currentCitiesList.innerHTML = "";
+
+    const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
+      ? Intl.supportedValuesOf("timeZone")
+      : ["UTC", "Asia/Taipei", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Singapore", "Europe/London", "America/New_York", "America/Los_Angeles"];
+
+    const uniqueZonesSet = new Set(supportedZones);
+    State.selectedIds.forEach((id) => {
+      const city = State.findCity(id);
+      if (city && city.zone) {
+        uniqueZonesSet.add(city.zone);
+      }
+    });
+
+    const now = new Date();
+    const zoneDetails = Array.from(uniqueZonesSet).map((zone) => {
+      const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
+      const sign = offsetMins >= 0 ? "+" : "-";
+      const absMins = Math.abs(offsetMins);
+      const hours = Math.floor(absMins / 60);
+      const mins = absMins % 60;
+      const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
+      return {
+        zone,
+        offsetMins,
+        label: `${zone} (${offsetStr})`
+      };
+    });
+
+    zoneDetails.sort((a, b) => {
+      if (a.offsetMins !== b.offsetMins) {
+        return a.offsetMins - b.offsetMins;
+      }
+      return a.zone.localeCompare(b.zone);
+    });
+
+    State.selectedIds.forEach((id) => {
+      const city = State.findCity(id);
+      if (!city) return;
+
+      const cityName = I18nUtils.getCityName(city);
+      let lng = city.lng;
+      let lat = city.lat;
+      if (typeof lng !== "number" || typeof lat !== "number") {
+        lng = (city.x - 46.2357) / 0.2816;
+        lat = (city.y - 63.3239) / -0.5257;
+      }
+
+      const card = document.createElement("div");
+      card.className = "current-city-card";
+      card.setAttribute("draggable", "false");
+      card.dataset.id = id;
+
+      const currentZone = city.zone || "UTC";
+      let timezoneOptions = "";
+      zoneDetails.forEach((detail) => {
+        const selected = detail.zone === currentZone ? " selected" : "";
+        timezoneOptions += `<option value="${detail.zone}"${selected}>${detail.label}</option>`;
+      });
+
+      card.innerHTML = `
+        <div class="drag-handle">⋮⋮</div>
+        <input class="city-name-input" type="text" value="${cityName.replaceAll('"', "&quot;")}" placeholder="Name">
+        <select class="city-zone-select">
+          ${timezoneOptions}
+        </select>
+        <input class="city-lng-input" type="number" step="any" value="${lng.toFixed(2)}" placeholder="Lng">
+        <input class="city-lat-input" type="number" step="any" value="${lat.toFixed(2)}" placeholder="Lat">
+        <button type="button" class="update-city-card-btn">${I18nUtils.getTranslation("updateBtn") || "Update"}</button>
+        <button type="button" class="remove-city-card-btn" aria-label="${I18nUtils.getTranslation("removeCity", { name: cityName })}">×</button>
       `;
 
-      const inputs = item.querySelectorAll("input");
-      const updateButton = item.querySelectorAll("button")[0];
-      const deleteButton = item.querySelectorAll("button")[1];
+      const nameInput = card.querySelector(".city-name-input");
+      const zoneSelect = card.querySelector(".city-zone-select");
+      const lngInput = card.querySelector(".city-lng-input");
+      const latInput = card.querySelector(".city-lat-input");
+      const updateBtn = card.querySelector(".update-city-card-btn");
+      const removeBtn = card.querySelector(".remove-city-card-btn");
 
-      updateButton.addEventListener("click", () => {
-        const nextName = inputs[0].value.trim();
-        const nextZone = inputs[1].value.trim();
-        if (!nextName || !TimeUtils.isValidZone(nextZone)) return;
-        State.customCities = State.customCities.map((existing) =>
-          existing.id === city.id
-            ? {
-              ...existing,
-              name: nextName,
-              zone: nextZone,
-              x: MathUtils.clamp(Number(inputs[2].value), 0, 100),
-              y: MathUtils.clamp(Number(inputs[3].value), 0, 100)
-            }
-            : existing
-        );
-        State.saveCustomCities();
-        this.renderCustomCityEditor();
-        this.render();
+      const dragHandle = card.querySelector(".drag-handle");
+      dragHandle.addEventListener("mouseenter", () => {
+        card.setAttribute("draggable", "true");
+      });
+      dragHandle.addEventListener("mouseleave", () => {
+        card.setAttribute("draggable", "false");
       });
 
-      deleteButton.addEventListener("click", () => {
-        State.customCities = State.customCities.filter((existing) => existing.id !== city.id);
-        State.selectedIds = State.selectedIds.filter((selectedId) => selectedId !== city.id);
+      card.addEventListener("dragstart", (e) => {
+        State.draggingId = id;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", id);
+        card.classList.add("is-dragging");
+      });
+
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      });
+
+      card.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        card.classList.add("drag-over");
+      });
+
+      card.addEventListener("dragleave", () => {
+        card.classList.remove("drag-over");
+      });
+
+      card.addEventListener("dragend", () => {
+        card.classList.remove("is-dragging");
+        document.querySelectorAll(".current-city-card").forEach(c => c.classList.remove("drag-over"));
+        State.draggingId = null;
+      });
+
+      card.addEventListener("drop", (e) => {
+        e.preventDefault();
+        card.classList.remove("drag-over");
+        const draggedId = State.draggingId;
+        if (draggedId && draggedId !== id) {
+          const oldIndex = State.selectedIds.indexOf(draggedId);
+          const newIndex = State.selectedIds.indexOf(id);
+          if (oldIndex !== -1 && newIndex !== -1) {
+            const list = [...State.selectedIds];
+            list.splice(oldIndex, 1);
+            list.splice(newIndex, 0, draggedId);
+            State.selectedIds = list;
+            State.saveSelection();
+            Renderer.render();
+          }
+        }
+        State.draggingId = null;
+      });
+
+      updateBtn.addEventListener("click", () => {
+        const nextName = nameInput.value.trim();
+        const nextZone = zoneSelect.value.trim();
+        const nextLng = Number(lngInput.value);
+        const nextLat = Number(latInput.value);
+
+        if (!nextName || !nextZone || !TimeUtils.isValidZone(nextZone) || isNaN(nextLng) || isNaN(nextLat)) {
+          alert("Invalid input. Please verify name, timezone, and coordinates.");
+          return;
+        }
+
+        const cx = 0.2816 * nextLng + 46.2357;
+        const cy = -0.5257 * nextLat + 63.3239;
+        const x = MathUtils.clamp(cx, 0, 100);
+        const y = MathUtils.clamp(cy, 0, 100);
+
+        let targetId = city.id;
+        let isNewCustom = false;
+        if (!targetId.startsWith("custom-")) {
+          targetId = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          isNewCustom = true;
+        }
+
+        const updatedCity = {
+          id: targetId,
+          name: nextName,
+          zone: nextZone,
+          x: x,
+          y: y,
+          lng: nextLng,
+          lat: nextLat
+        };
+
+        if (isNewCustom) {
+          State.customCities = [...State.customCities, updatedCity];
+          State.selectedIds = State.selectedIds.map(selectedId => selectedId === city.id ? targetId : selectedId);
+        } else {
+          State.customCities = State.customCities.map(existing => existing.id === city.id ? updatedCity : existing);
+        }
+
         State.saveCustomCities();
         State.saveSelection();
-        this.renderCustomCityEditor();
-        this.render();
+        Renderer.render();
       });
 
-      DOM.customCityList.append(item);
+      removeBtn.addEventListener("click", () => {
+        State.toggleCity(city.id);
+      });
+
+      DOM.currentCitiesList.append(card);
     });
   },
 
@@ -880,7 +1030,7 @@ const Renderer = {
     this.renderNowText();
     this.renderMap();
     this.renderRows();
-    this.renderCustomCityEditor();
+    this.renderCurrentCitiesList();
     this.renderPeriodSettings();
     // Render lines after layout is established
     this.renderNowLine();
@@ -991,7 +1141,6 @@ const AppController = {
     State.customCities = [...State.customCities, newCity];
     State.saveCustomCities();
     State.toggleCity(newCity.id);
-    Renderer.renderCustomCityEditor();
   },
 
   wireMapSettings() {
@@ -1047,72 +1196,77 @@ const AppController = {
     return fetch(url).then((res) => res.json());
   },
 
-  fillCityForm(result) {
-    DOM.customCityName.value = result.name;
-    DOM.customCityZone.value = result.timezone || "";
-    const cx = 0.2816 * result.longitude + 46.2357;
-    const cy = -0.5257 * result.latitude + 63.3239;
-    DOM.customCityX.value = cx.toFixed(1);
-    DOM.customCityY.value = cy.toFixed(1);
-  },
-
   wireCitySearch() {
-    if (!DOM.searchCityButton) return;
+    if (!DOM.searchCityBtn) return;
 
     document.addEventListener("click", (e) => {
-      if (DOM.searchSuggestions && !DOM.searchSuggestions.contains(e.target) && e.target !== DOM.customCityName && e.target !== DOM.searchCityButton) {
-        DOM.searchSuggestions.hidden = true;
+      if (DOM.searchResultsList && !DOM.searchResultsList.contains(e.target) && e.target !== DOM.searchCityInput && e.target !== DOM.searchCityBtn) {
+        DOM.searchResultsList.hidden = true;
       }
     });
 
-    if (DOM.customCityName) {
-      DOM.customCityName.addEventListener("input", () => {
-        if (DOM.searchSuggestions) {
-          DOM.searchSuggestions.hidden = true;
-        }
-      });
-    }
-
-    DOM.searchCityButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const query = DOM.customCityName.value.trim();
+    const triggerSearch = () => {
+      const query = DOM.searchCityInput.value.trim();
       if (!query) return;
 
-      DOM.searchCityButton.textContent = "⏳";
-      DOM.searchCityButton.style.pointerEvents = "none";
-      DOM.searchSuggestions.hidden = true;
-      DOM.searchSuggestions.innerHTML = "";
+      DOM.searchCityBtn.textContent = "⏳";
+      DOM.searchCityBtn.style.pointerEvents = "none";
+      DOM.searchResultsList.hidden = true;
+      DOM.searchResultsList.innerHTML = "";
 
       this.fetchCityResults(query)
         .then((data) => {
           if (data && data.results && data.results.length > 0) {
-            if (data.results.length === 1) {
-              this.fillCityForm(data.results[0]);
-            } else {
-              DOM.searchSuggestions.innerHTML = "";
-              data.results.forEach((result) => {
-                const item = document.createElement("div");
-                item.className = "suggestion-item";
+            DOM.searchResultsList.innerHTML = "";
+            data.results.forEach((result) => {
+              const card = document.createElement("div");
+              card.className = "search-result-card";
 
-                const subtitleParts = [];
-                if (result.country) subtitleParts.push(result.country);
-                if (result.admin1) subtitleParts.push(result.admin1);
-                const subtitleText = subtitleParts.length > 0 ? ` (${subtitleParts.join(", ")})` : "";
+              const locationParts = [];
+              if (result.country) locationParts.push(result.country);
+              if (result.admin1) locationParts.push(result.admin1);
+              const subtitleText = locationParts.length > 0 ? ` (${locationParts.join(", ")})` : "";
 
-                item.innerHTML = `
-                    <div class="suggestion-title">${result.name}${subtitleText}</div>
-                    <div class="suggestion-subtitle">${result.timezone || ""}</div>
-                  `;
+              const lng = result.longitude || 0;
+              const lat = result.latitude || 0;
 
-                item.addEventListener("click", (evt) => {
-                  evt.stopPropagation();
-                  this.fillCityForm(result);
-                  DOM.searchSuggestions.hidden = true;
-                });
-                DOM.searchSuggestions.append(item);
+              card.innerHTML = `
+                <div class="search-result-info">
+                  <div class="search-result-name-row">
+                    <span class="search-result-name">${result.name}</span>
+                    <span class="search-result-country">${subtitleText}</span>
+                  </div>
+                  <div class="search-result-details">${result.timezone || "UTC"} (Lng: ${lng.toFixed(1)}, Lat: ${lat.toFixed(1)})</div>
+                </div>
+              `;
+
+              card.addEventListener("click", (evt) => {
+                evt.stopPropagation();
+                
+                const cx = 0.2816 * lng + 46.2357;
+                const cy = -0.5257 * lat + 63.3239;
+                const newCity = {
+                  id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                  name: result.name,
+                  zone: result.timezone || "UTC",
+                  x: MathUtils.clamp(cx, 0, 100),
+                  y: MathUtils.clamp(cy, 0, 100),
+                  lng: lng,
+                  lat: lat
+                };
+
+                State.customCities = [...State.customCities, newCity];
+                State.saveCustomCities();
+                State.toggleCity(newCity.id);
+
+                DOM.searchCityInput.value = "";
+                DOM.searchResultsList.hidden = true;
+                DOM.searchResultsList.innerHTML = "";
               });
-              DOM.searchSuggestions.hidden = false;
-            }
+              
+              DOM.searchResultsList.append(card);
+            });
+            DOM.searchResultsList.hidden = false;
           } else {
             alert(I18nUtils.getTranslation("cityNotFound") || "City not found");
           }
@@ -1122,44 +1276,27 @@ const AppController = {
           alert("Network error. Please try again.");
         })
         .finally(() => {
-          DOM.searchCityButton.textContent = "🔍";
-          DOM.searchCityButton.style.pointerEvents = "auto";
+          DOM.searchCityBtn.textContent = I18nUtils.getTranslation("searchBtn") || "Search";
+          DOM.searchCityBtn.style.pointerEvents = "auto";
         });
+    };
+
+    DOM.searchCityBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      triggerSearch();
     });
-  },
 
-  wireCustomCityForm() {
-    DOM.addCustomCityButton.addEventListener("click", () => {
-      const name = DOM.customCityName.value.trim();
-      const zone = DOM.customCityZone.value.trim();
-      const x = Number(DOM.customCityX.value);
-      const y = Number(DOM.customCityY.value);
-      if (!name || !zone || !TimeUtils.isValidZone(zone)) return;
-
-      const newCity = {
-        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name,
-        zone,
-        x: MathUtils.clamp(x, 0, 100),
-        y: MathUtils.clamp(y, 0, 100)
-      };
-
-      State.customCities = [
-        ...State.customCities,
-        newCity
-      ];
-      State.saveCustomCities();
-      DOM.customCityName.value = "";
-      DOM.customCityZone.value = "";
-      State.toggleCity(newCity.id);
-      Renderer.renderCustomCityEditor();
+    DOM.searchCityInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        triggerSearch();
+      }
     });
   },
 
   wireSettings() {
     this.wireMapSettings();
     this.wireCitySearch();
-    this.wireCustomCityForm();
   },
 
   wireScrubLine() {
