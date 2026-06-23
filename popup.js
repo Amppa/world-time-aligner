@@ -607,7 +607,6 @@ const Renderer = {
     }
     DOM.cityLayer.innerHTML = "";
     State.allCities().forEach((city) => {
-      if (city.id.startsWith("custom-utc-")) return;
       const position = MapUtils.mapPosition(city);
       const button = document.createElement("button");
       button.type = "button";
