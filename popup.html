@@ -105,12 +105,14 @@
 
           <div class="add-city-section" style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px;">
             <h4 data-i18n="addCityTitle">Add City</h4>
-            <div class="search-bar-row">
-              <input id="searchCityInput" type="text" placeholder="e.g. London"
-                data-i18n-placeholder="searchPlaceholder" maxlength="40">
-              <button id="searchCityBtn" type="button" data-i18n="searchBtn">Search</button>
+            <div class="search-container">
+              <div class="search-bar-row">
+                <input id="searchCityInput" type="text" placeholder="e.g. London"
+                  data-i18n-placeholder="searchPlaceholder" maxlength="40">
+                <button id="searchCityBtn" type="button" data-i18n="searchBtn">Search</button>
+              </div>
+              <div id="searchResultsList" class="search-results-list" hidden></div>
             </div>
-            <div id="searchResultsList" class="search-results-list" hidden></div>
           </div>
 
           <div class="settings-actions" style="margin-top: 16px;">

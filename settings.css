@@ -447,7 +447,14 @@ h1 {
   border-color: var(--muted);
 }
 
+.search-container {
+  position: relative;
+}
+
 .search-results-list {
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -456,7 +463,13 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 6px;
-  background: #fbfcfa;
+  background: var(--panel);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+.search-results-list[hidden] {
+  display: none !important;
 }
 
 .search-result-card {
