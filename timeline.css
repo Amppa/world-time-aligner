@@ -21,7 +21,7 @@
 }
 
 .timeline-rows {
-  max-height: 260px;
+  max-height: 300px;
   overflow-y: auto;
 }
 

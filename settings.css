@@ -362,6 +362,7 @@ h1 {
 
 .current-city-card input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .update-city-card-btn {
