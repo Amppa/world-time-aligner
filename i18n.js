@@ -1,4 +1,4 @@
-const i18nTranslations = {
+export const i18nTranslations = {
   zh: {
     nowTextLoading: "正在讀取目前時間",
     mapSettings: "設定",
@@ -107,7 +107,7 @@ const i18nTranslations = {
   }
 };
 
-const i18nCityNames = {
+export const i18nCityNames = {
   zh: {
     "amsterdam": "阿姆斯坦丹",
     "athens-airport": "希臘機場",
