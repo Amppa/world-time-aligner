@@ -1,17 +1,14 @@
 /**
  * World Time Aligner - Utilities Module
  */
-import { State } from './state.js';
-import { DOM } from './dom.js';
-import { i18nTranslations, i18nCityNames } from '../i18n.js';
 
-export const MathUtils = {
+const MathUtils = {
   clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
 };
 
-export const TimeUtils = {
+const TimeUtils = {
   resolveZone(zone) {
     if (typeof zone !== "string") return "UTC";
     const cleanInput = zone.trim().toLowerCase().replace(/[\s\-_]+/g, "");
@@ -162,7 +159,7 @@ export const TimeUtils = {
   }
 };
 
-export const I18nUtils = {
+const I18nUtils = {
   getTranslation(key, params = {}) {
     let text = i18nTranslations[State.currentLang]?.[key] || "";
     for (const [pKey, pVal] of Object.entries(params)) {
@@ -180,7 +177,7 @@ export const I18nUtils = {
   }
 };
 
-export const PeriodUtils = {
+const PeriodUtils = {
   getHourStyle(hour) {
     const period = State.timePeriods.find((p) => {
       if (p.start <= p.end) {
@@ -193,7 +190,7 @@ export const PeriodUtils = {
   }
 };
 
-export const MapUtils = {
+const MapUtils = {
   mapPosition(city) {
     let cx = city.x;
     let cy = city.y;
@@ -233,7 +230,7 @@ export const MapUtils = {
   }
 };
 
-export const TimelineUtils = {
+const TimelineUtils = {
   getNowFraction() {
     const now = new Date();
     let hours, minutes;
@@ -282,7 +279,7 @@ export const TimelineUtils = {
   }
 };
 
-export const ColorUtils = {
+const ColorUtils = {
   toHex7(colorStr) {
     if (!colorStr) return "#000000";
     colorStr = colorStr.trim();

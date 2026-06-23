@@ -1,7 +1,7 @@
 /**
  * World Time Aligner - Configuration Module
  */
-export const CONFIG = {
+const CONFIG = {
   defaultSelection: ["singapore", "new-york", "los-angeles"],
   maxCities: 6,
   storageKey: "worldTimeAlignerCities",

@@ -1,12 +1,8 @@
 /**
  * World Time Aligner - Application State Management Module
  */
-import { CONFIG } from './config.js';
-import { TimeUtils, MathUtils } from './utils.js';
-import { Renderer } from './renderer.js';
-import { cityCatalog } from '../cities.js';
 
-export const State = {
+const State = {
   selectedIds: [],
   customCities: [],
   mapSettings: {},

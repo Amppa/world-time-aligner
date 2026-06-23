@@ -1,7 +1,7 @@
 /**
  * World Time Aligner - DOM Element Caching Module
  */
-export const DOM = {
+const DOM = {
   cityLayer: document.querySelector("#cityLayer"),
   timelineRows: document.querySelector("#timelineRows"),
   nowLine: document.querySelector("#nowLine"),

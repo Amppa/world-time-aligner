@@ -1,4 +1,4 @@
-export const cityCatalog = [
+const cityCatalog = [
   { id: "amsterdam", zone: "Europe/Amsterdam", lng: 4.9, lat: 52.37 },
   { id: "athens-airport", zone: "Europe/Athens", lng: 23.94, lat: 37.94 },
   { id: "auckland", zone: "Pacific/Auckland", lng: 174.76, lat: -36.85 },

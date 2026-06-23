@@ -1,13 +1,8 @@
 /**
  * World Time Aligner - UI Renderer Module
  */
-import { DOM } from './dom.js';
-import { State } from './state.js';
-import { CONFIG } from './config.js';
-import { TimeUtils, MathUtils, I18nUtils, PeriodUtils, MapUtils, TimelineUtils, ColorUtils } from './utils.js';
-import { i18nTranslations } from '../i18n.js';
 
-export const Renderer = {
+const Renderer = {
   applyLanguage() {
     document.querySelectorAll("[data-i18n]").forEach((elem) => {
       const key = elem.dataset.i18n;

@@ -1,13 +1,8 @@
 /**
  * World Time Aligner - Event Controller Module
  */
-import { DOM } from './dom.js';
-import { State } from './state.js';
-import { CONFIG } from './config.js';
-import { Renderer } from './renderer.js';
-import { MathUtils, TimeUtils, I18nUtils, MapUtils, TimelineUtils } from './utils.js';
 
-export const AppController = {
+const AppController = {
   updateMapSetting(key, value) {
     const input = document.querySelector(`[data-setting="${key}"]`);
     if (!input) return;
@@ -407,3 +402,5 @@ export const AppController = {
     setInterval(() => Renderer.render(), 60 * 1000);
   }
 };
+
+AppController.init();
