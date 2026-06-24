@@ -113,18 +113,7 @@ const Renderer = {
         : "";
       labelText.innerHTML = `<span class="city-name">${cityName}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}${dstSuffix}</span>`;
 
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.className = "remove-city-btn";
-      removeBtn.textContent = "×";
-      removeBtn.title = I18nUtils.getTranslation("removeCity", { name: cityName });
-      removeBtn.setAttribute("aria-label", I18nUtils.getTranslation("removeCity", { name: cityName }));
-      removeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        State.toggleCity(city.id);
-      });
-
-      label.append(labelText, removeBtn);
+      label.append(labelText);
 
       const hours = document.createElement("div");
       hours.className = "hours";
