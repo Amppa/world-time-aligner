@@ -15,9 +15,10 @@
 }
 
 .hours {
-  display: grid;
-  grid-template-columns: repeat(24, minmax(25px, 1fr));
+  display: flex;
   position: relative;
+  overflow: hidden;
+  width: 100%;
 }
 
 .timeline-rows {
@@ -86,7 +87,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 calc(100% / 24);
   min-width: 0;
+  box-sizing: border-box;
   border-right: 1px solid rgba(255, 255, 255, .28);
   color: #ffffff;
   font-size: 11px;

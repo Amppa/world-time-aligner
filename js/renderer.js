@@ -118,20 +118,36 @@ const Renderer = {
       const hours = document.createElement("div");
       hours.className = "hours";
 
-      State.baseHours.forEach((date, index) => {
-        const cityHour = TimeUtils.hourInZone(date, city.zone);
+      // Calculate offset difference in hours relative to the first (reference) city
+      const firstCity = State.selectedIds.length > 0 ? State.findCity(State.selectedIds[0]) : null;
+      const refZone = firstCity ? firstCity.zone : Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const refOffset = TimeUtils.getOffsetMinutes(State.baseHours[0], refZone);
+      const cityOffset = TimeUtils.getOffsetMinutes(State.baseHours[0], city.zone);
+      const diffHours = (cityOffset - refOffset) / 60;
+      const I = Math.floor(diffHours);
+      const F = diffHours - I;
+
+      // Render 25 cells if there's a fractional hour offset, otherwise 24
+      const numCells = F > 0 ? 25 : 24;
+      for (let index = 0; index < numCells; index++) {
+        const cellDate = new Date(State.baseHours[0].getTime() + (index - F) * 3600000);
+        const cityHour = TimeUtils.hourInZone(cellDate, city.zone);
         const cell = document.createElement("div");
-        cell.className = `hour-cell${index === 0 ? " is-now" : ""}`;
+        cell.className = "hour-cell";
         cell.dataset.index = String(index);
         cell.textContent = String(cityHour).padStart(2, "0");
-        cell.title = `${cityName} ${TimeUtils.formatTime(date, city.zone)}`;
+        cell.title = `${cityName} ${TimeUtils.formatTime(cellDate, city.zone)}`;
 
         const styleInfo = PeriodUtils.getHourStyle(cityHour);
         cell.style.backgroundColor = styleInfo.color;
         cell.style.color = styleInfo.fontColor;
 
+        if (index === 0) {
+          cell.style.marginLeft = `calc(-${F} * 100% / 24)`;
+        }
+
         hours.append(cell);
-      });
+      }
 
       row.append(label, hours);
       DOM.timelineRows.append(row);
