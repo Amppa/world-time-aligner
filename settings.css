@@ -398,6 +398,12 @@ h1 {
   border-color: var(--accent);
 }
 
+.current-city-card input.invalid,
+.current-city-card select.invalid {
+  border-color: #ff3b30;
+  box-shadow: 0 0 0 1px #ff3b30;
+}
+
 .current-city-card input[type="number"]::-webkit-outer-spin-button,
 .current-city-card input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;

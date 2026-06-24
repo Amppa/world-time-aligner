@@ -213,7 +213,6 @@ const Renderer = {
         </select>
         <input class="city-lng-input" type="number" step="any" value="${lng.toFixed(2)}" placeholder="Lng">
         <input class="city-lat-input" type="number" step="any" value="${lat.toFixed(2)}" placeholder="Lat">
-        <button type="button" class="update-city-card-btn">${I18nUtils.getTranslation("updateBtn") || "Update"}</button>
         <button type="button" class="remove-city-card-btn" aria-label="${I18nUtils.getTranslation("removeCity", { name: cityName })}">×</button>
       `;
 
@@ -222,7 +221,6 @@ const Renderer = {
       zoneSelect.value = currentZone;
       const lngInput = card.querySelector(".city-lng-input");
       const latInput = card.querySelector(".city-lat-input");
-      const updateBtn = card.querySelector(".update-city-card-btn");
       const removeBtn = card.querySelector(".remove-city-card-btn");
 
       const dragHandle = card.querySelector(".drag-handle");
@@ -332,16 +330,45 @@ const Renderer = {
         State.lastActiveCard = null;
       });
 
-      updateBtn.addEventListener("click", () => {
+      const handleAutoSave = () => {
         const nextName = nameInput.value.trim();
         const nextZone = zoneSelect.value.trim();
-        const nextLng = Number(lngInput.value);
-        const nextLat = Number(latInput.value);
+        const rawLng = lngInput.value.trim();
+        const rawLat = latInput.value.trim();
+        const nextLng = Number(rawLng);
+        const nextLat = Number(rawLat);
 
-        if (!nextName || !nextZone || !TimeUtils.isValidZone(nextZone) || isNaN(nextLng) || isNaN(nextLat)) {
-          alert("Invalid input. Please verify name, timezone, and coordinates.");
-          return;
+        let isValid = true;
+
+        if (!nextName) {
+          nameInput.classList.add("invalid");
+          isValid = false;
+        } else {
+          nameInput.classList.remove("invalid");
         }
+
+        if (!nextZone || !TimeUtils.isValidZone(nextZone)) {
+          zoneSelect.classList.add("invalid");
+          isValid = false;
+        } else {
+          zoneSelect.classList.remove("invalid");
+        }
+
+        if (rawLng === "" || isNaN(nextLng)) {
+          lngInput.classList.add("invalid");
+          isValid = false;
+        } else {
+          lngInput.classList.remove("invalid");
+        }
+
+        if (rawLat === "" || isNaN(nextLat)) {
+          latInput.classList.add("invalid");
+          isValid = false;
+        } else {
+          latInput.classList.remove("invalid");
+        }
+
+        if (!isValid) return;
 
         const cx = 0.2816 * nextLng + 46.2357;
         const cy = -0.5257 * nextLat + 63.3239;
@@ -368,13 +395,47 @@ const Renderer = {
         if (isNewCustom) {
           State.customCities = [...State.customCities, updatedCity];
           State.selectedIds = State.selectedIds.map(selectedId => selectedId === city.id ? targetId : selectedId);
+          State.saveCustomCities();
+          State.saveSelection();
+          Renderer.render();
         } else {
           State.customCities = State.customCities.map(existing => existing.id === city.id ? updatedCity : existing);
-        }
+          State.saveCustomCities();
+          State.saveSelection();
 
-        State.saveCustomCities();
-        State.saveSelection();
-        Renderer.render();
+          // Update UI components partially to keep cursor/input focus
+          State.makeBaseHours();
+          Renderer.renderNowText();
+          Renderer.renderMap();
+          Renderer.renderRows();
+          Renderer.renderNowLine();
+          Renderer.renderScrubLine();
+          Renderer.renderNightArea(State.selectedOffsetHours || 0);
+          Renderer.applyVisibilitySettings();
+        }
+      };
+
+      nameInput.addEventListener("blur", handleAutoSave);
+      nameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          nameInput.blur();
+        }
+      });
+
+      zoneSelect.addEventListener("change", handleAutoSave);
+
+      lngInput.addEventListener("blur", handleAutoSave);
+      lngInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          lngInput.blur();
+        }
+      });
+
+      latInput.addEventListener("blur", handleAutoSave);
+      latInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          latInput.blur();
+        }
       });
 
       removeBtn.addEventListener("click", () => {
