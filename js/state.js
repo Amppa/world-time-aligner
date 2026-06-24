@@ -15,8 +15,10 @@ const State = {
   draggingId: null,
   cityLimit: 6,
   lastActiveCard: null,
+  _localCity: null,
 
   init() {
+    this._localCity = null;
     this.currentLang = this.loadLanguage();
     this.timePeriods = this.loadTimePeriods();
     this.mapSettings = this.loadMapSettings();
@@ -138,7 +140,36 @@ const State = {
   },
 
   allCities() {
-    return [...cityCatalog, ...this.customCities];
+    if (!this._localCity) {
+      const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      const matchingCity = cityCatalog.find((c) => c.zone === localZone);
+      let lng = 114.15; // default fallback Hong Kong longitude
+      let lat = 22.3;   // default fallback Hong Kong latitude
+
+      if (matchingCity) {
+        lng = matchingCity.lng;
+        lat = matchingCity.lat;
+      } else {
+        try {
+          const now = new Date();
+          const offsetMins = TimeUtils.getOffsetMinutes(now, localZone);
+          lng = offsetMins * 0.25;
+          lat = 20.0;
+        } catch (e) {
+          lng = 114.15;
+          lat = 22.3;
+        }
+      }
+
+      this._localCity = {
+        id: "local",
+        zone: localZone,
+        lng: lng,
+        lat: lat,
+        matchingId: matchingCity ? matchingCity.id : null
+      };
+    }
+    return [this._localCity, ...cityCatalog, ...this.customCities];
   },
 
   findCity(id) {

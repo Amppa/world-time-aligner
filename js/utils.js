@@ -205,6 +205,13 @@ const I18nUtils = {
     if (city.id.startsWith("custom-")) {
       return city.name;
     }
+    if (city.id === "local") {
+      if (city.matchingId) {
+        return i18nCityNames[State.currentLang]?.[city.matchingId] || city.matchingId;
+      }
+      const parts = city.zone.split("/");
+      return parts[parts.length - 1].replace(/_/g, " ");
+    }
     return i18nCityNames[State.currentLang]?.[city.id] || city.id;
   }
 };

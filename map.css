@@ -165,6 +165,7 @@
 
 .city-pin.is-selected {
   background: var(--selected-pin);
+  z-index: 2;
 }
 
 .city-pin:hover {
