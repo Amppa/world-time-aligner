@@ -2,16 +2,25 @@
   position: relative;
   overflow: hidden;
   margin-top: 10px;
-  background: var(--panel);
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.timeline-rows {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .timeline-row {
   display: grid;
   grid-template-columns: 120px 1fr;
   min-height: 46px;
-  border-bottom: 1px solid #eef1ed;
+  background: var(--panel);
 }
 
 .hours {
@@ -19,15 +28,6 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-}
-
-.timeline-rows {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.timeline-row:last-child {
-  border-bottom: 0;
 }
 
 .city-label {
