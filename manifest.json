@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "World Time Aligner",
   "description": "Compare the next 24 hours across selected cities with a shared hover guide.",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "icons": {
     "16": "assets/icon.png",
     "32": "assets/icon.png",
