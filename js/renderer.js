@@ -667,11 +667,15 @@ const Renderer = {
       handle.setAttribute("aria-label", "Drag to shift night area view");
 
       // Create remove button
+      const removeTitle = (typeof I18nUtils !== "undefined" && typeof I18nUtils.getTranslation === "function")
+        ? I18nUtils.getTranslation("removeScrubLine")
+        : "Remove";
+
       const resetBtn = document.createElement("button");
       resetBtn.className = "scrub-reset-btn is-visible";
       resetBtn.type = "button";
-      resetBtn.title = "Remove";
-      resetBtn.setAttribute("aria-label", "Remove");
+      resetBtn.title = removeTitle;
+      resetBtn.setAttribute("aria-label", removeTitle);
       resetBtn.textContent = "×";
 
       group.appendChild(line);

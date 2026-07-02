@@ -35,7 +35,7 @@ const i18nTranslations = {
     clearAllBtn: "清除全部",
     worldMapTitle: "世界地圖",
     cityNotFound: "找不到該城市",
-    resetScrubLine: "重設為目前時間",
+    removeScrubLine: "移除此時間標記",
     showNightArea: "顯示夜間範圍",
     showHourLines: "顯示小時線",
     cityLimitLabel: "城市數量上限："
@@ -76,7 +76,7 @@ const i18nTranslations = {
     clearAllBtn: "Clear All",
     worldMapTitle: "World Map",
     cityNotFound: "City not found",
-    resetScrubLine: "Reset to current time",
+    removeScrubLine: "Remove this time marker",
     showNightArea: "Show Night Area",
     showHourLines: "Show Hour Lines",
     cityLimitLabel: "Max Cities: "
