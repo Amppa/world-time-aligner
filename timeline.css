@@ -122,6 +122,27 @@
   z-index: 5;
 }
 
+/* Container for multiple scrub lines */
+#scrubLinesContainer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Group wrapper for a single dynamic scrub line */
+.scrub-line-group {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
 /* Now Line — always visible, teal solid line (current time) */
 .now-line {
   border-left: 2.5px solid var(--scrub-color);

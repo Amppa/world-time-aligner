@@ -11,7 +11,8 @@ const State = {
   baseHours: [],
   selectedOffsetHours: null,
   nowLineMode: "local",   // 'local' | 'firstCity'
-  scrubFraction: null,    // 0.0 ~ 1.0 position on 0-24hr axis, null = follow now
+  scrubs: [],             // array of { id, fraction } objects
+  activeScrubId: null,    // id of the active scrub line
   draggingId: null,
   cityLimit: 6,
   lastActiveCard: null,
@@ -26,8 +27,9 @@ const State = {
     this.cityLimit = this.loadCityLimit();
     this.selectedIds = this.loadSelection();
     this.nowLineMode = this.loadNowLineMode();
-    this.selectedOffsetHours = null;
-    this.scrubFraction = null;
+    this.selectedOffsetHours = 0;
+    this.scrubs = [];
+    this.activeScrubId = null;
     this.draggingId = null;
     this.lastActiveCard = null;
     this.makeBaseHours();
@@ -137,6 +139,12 @@ const State = {
     if (typeof Renderer !== "undefined") {
       Renderer._cachedZoneDetails = null;
     }
+  },
+
+  getActiveScrubFraction() {
+    if (!this.activeScrubId || !this.scrubs || this.scrubs.length === 0) return null;
+    const active = this.scrubs.find(s => s.id === this.activeScrubId);
+    return active ? active.fraction : null;
   },
 
   allCities() {

@@ -578,14 +578,14 @@ const Renderer = {
       DOM.nightAreaOverlay.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
     }
 
-    // Filled night area — follows the scrub line offset
-    const pts = this._calcNightAreaBoundaryPoints(offsetHours);
-    DOM.nightPath.setAttribute("d", `M 0,100 L ${pts.join(" L ")} L 100,100 Z`);
+    // Filled night area — always at the true "now" position (offset = 0)
+    const realNowPts = this._calcNightAreaBoundaryPoints(0);
+    DOM.nightPath.setAttribute("d", `M 0,100 L ${realNowPts.join(" L ")} L 100,100 Z`);
 
-    // Static reference curve — always at the true "now" position (offset = 0)
+    // Dynamic reference curve — follows the active scrub line offset
     if (DOM.nightPathRef) {
-      const refPts = this._calcNightAreaBoundaryPoints(0);
-      DOM.nightPathRef.setAttribute("d", `M ${refPts.join(" L ")}`);
+      const activePts = this._calcNightAreaBoundaryPoints(offsetHours);
+      DOM.nightPathRef.setAttribute("d", `M ${activePts.join(" L ")}`);
     }
   },
 
@@ -625,43 +625,60 @@ const Renderer = {
   },
 
   renderScrubLine() {
-    if (!DOM.scrubLine || !DOM.scrubHandle) return;
+    if (!DOM.scrubLinesContainer) return;
 
-    const isSnapped = (State.scrubFraction === null);
-    let fraction = State.scrubFraction;
-    if (isSnapped) {
-      fraction = TimelineUtils.getNowFraction();
-    }
+    // Clear dynamic scrub lines
+    DOM.scrubLinesContainer.innerHTML = "";
 
-    if (DOM.scrubResetBtn) {
-      if (isSnapped) {
-        DOM.scrubResetBtn.classList.remove("is-visible");
-      } else {
-        DOM.scrubResetBtn.classList.add("is-visible");
-      }
-    }
-
-    const left = TimelineUtils.fractionToLeft(fraction);
-    if (left === 0) {
-      DOM.scrubLine.style.display = "none";
-      DOM.scrubHandle.style.display = "none";
-      if (DOM.scrubResetBtn) {
-        DOM.scrubResetBtn.style.display = "none";
-      }
-      return;
-    }
-    DOM.scrubLine.style.display = "";
-    DOM.scrubHandle.style.display = "";
-    DOM.scrubLine.style.left = `${left}px`;
-    DOM.scrubHandle.style.left = `${left}px`;
-
-    if (DOM.scrubResetBtn) {
-      DOM.scrubResetBtn.style.display = "";
-      DOM.scrubResetBtn.style.left = `${left}px`;
-    }
-
-    // Compute night area offset relative to real now
+    // Sync selectedOffsetHours based on active scrub
+    const activeFraction = State.getActiveScrubFraction();
     const nowFraction = TimelineUtils.getNowFraction();
-    State.selectedOffsetHours = (fraction - nowFraction) * 24;
+    if (activeFraction !== null) {
+      State.selectedOffsetHours = (activeFraction - nowFraction) * 24;
+    } else {
+      State.selectedOffsetHours = 0;
+    }
+
+    State.scrubs.forEach((scrub) => {
+      const left = TimelineUtils.fractionToLeft(scrub.fraction);
+      if (left === 0) return;
+
+      const isActive = (scrub.id === State.activeScrubId);
+
+      // Create line group
+      const group = document.createElement("div");
+      group.className = "scrub-line-group";
+      group.dataset.id = scrub.id;
+      group.style.left = `${left}px`;
+
+      // Create dashed vertical line
+      const line = document.createElement("div");
+      line.className = "timeline-vline scrub-line";
+      if (isActive) {
+        line.classList.add("is-dragging");
+      }
+
+      // Create drag handle
+      const handle = document.createElement("div");
+      handle.className = "scrub-handle";
+      if (isActive) {
+        handle.classList.add("is-dragging");
+      }
+      handle.setAttribute("aria-label", "Drag to shift night area view");
+
+      // Create remove button
+      const resetBtn = document.createElement("button");
+      resetBtn.className = "scrub-reset-btn is-visible";
+      resetBtn.type = "button";
+      resetBtn.title = "Remove";
+      resetBtn.setAttribute("aria-label", "Remove");
+      resetBtn.textContent = "×";
+
+      group.appendChild(line);
+      group.appendChild(handle);
+      group.appendChild(resetBtn);
+
+      DOM.scrubLinesContainer.appendChild(group);
+    });
   }
 };

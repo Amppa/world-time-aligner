@@ -224,14 +224,8 @@
       <div id="timelineRows" class="timeline-rows"></div>
       <!-- Now Line: always visible, shows current time of reference timezone -->
       <div id="nowLine" class="timeline-vline now-line" aria-hidden="true"></div>
-      <!-- Scrub Line: draggable, controls night area overlay offset -->
-      <div id="scrubLine" class="timeline-vline scrub-line" aria-hidden="true"></div>
-      <!-- Scrub Handle: wider hit area for drag interaction -->
-      <div id="scrubHandle" class="scrub-handle" aria-label="Drag to shift night area view"></div>
-      <!-- Scrub Reset Button: small [x] shown below the scrub line when dragged -->
-      <button id="scrubResetBtn" class="scrub-reset-btn" type="button" title="Reset to current time"
-        aria-label="Reset to current time" data-i18n-title="resetScrubLine"
-        data-i18n-aria-label="resetScrubLine">×</button>
+      <!-- Container for dynamic scrub lines -->
+      <div id="scrubLinesContainer"></div>
     </section>
   </main>
   <script src="js/i18n.js"></script>

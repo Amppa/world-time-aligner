@@ -239,66 +239,151 @@ const AppController = {
   },
 
   wireScrubLine() {
-    if (!DOM.scrubHandle || !DOM.scrubLine) return;
+    if (!DOM.scrubLinesContainer || !DOM.timelinePanel) return;
     let isDragging = false;
+    let activeDragScrubId = null;
 
-    // Double-click: reset scrub line to now position
-    DOM.scrubHandle.addEventListener("dblclick", (e) => {
-      e.preventDefault();
-      State.scrubFraction = null;   // null = snap to now
-      Renderer.renderScrubLine();
-      Renderer.renderNightArea(State.selectedOffsetHours || 0);
+    // --- Interaction 1: Click timeline grid to add new scrub-line ---
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+
+    DOM.timelinePanel.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return; // Left click only
+      // If clicked on a handle or remove button, don't trigger add
+      if (e.target.closest(".scrub-handle") || e.target.closest(".scrub-reset-btn")) return;
+      mouseDownX = e.clientX;
+      mouseDownY = e.clientY;
     });
 
-    if (DOM.scrubResetBtn) {
-      DOM.scrubResetBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        State.scrubFraction = null;   // null = snap to now
+    DOM.timelinePanel.addEventListener("mouseup", (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest(".scrub-handle") || e.target.closest(".scrub-reset-btn")) return;
+      // Ensure we clicked inside the hour cells grid to avoid misclicks on the city name labels
+      if (!e.target.closest(".hours")) return;
+
+      const diffX = Math.abs(e.clientX - mouseDownX);
+      const diffY = Math.abs(e.clientY - mouseDownY);
+      // Small movement thresholds to distinguish single click from selection drag
+      if (diffX < 5 && diffY < 5) {
+        const panelRect = DOM.timelinePanel.getBoundingClientRect();
+        const pxLeft = e.clientX - panelRect.left;
+        const fraction = TimelineUtils.leftToFraction(pxLeft);
+
+        const newScrub = {
+          id: `scrub_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+          fraction: fraction
+        };
+        State.scrubs.push(newScrub);
+        State.activeScrubId = newScrub.id;
+
+        // Render scrub line and redraw night area
         Renderer.renderScrubLine();
-        Renderer.renderNightArea(State.selectedOffsetHours || 0);
-      });
-      DOM.scrubResetBtn.addEventListener("mousedown", (e) => {
-        e.stopPropagation();
-      });
-    }
+        Renderer.renderNightArea(State.selectedOffsetHours);
+      }
+    });
 
-    // Mousedown: start drag
-    DOM.scrubHandle.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;   // left button only
+    // --- Interaction 2: Drag to reposition scrub-line (Event Delegation) ---
+    DOM.timelinePanel.addEventListener("mousedown", (e) => {
+      const handle = e.target.closest(".scrub-handle");
+      if (!handle) return;
+      if (e.button !== 0) return;
+
+      const group = handle.closest(".scrub-line-group");
+      if (!group) return;
+
+      activeDragScrubId = group.dataset.id;
+      State.activeScrubId = activeDragScrubId;
       isDragging = true;
-      DOM.scrubLine.classList.add("is-dragging");
-      DOM.scrubHandle.classList.add("is-dragging");
+
+      // Clear is-dragging styling from all other scrub lines
+      DOM.scrubLinesContainer.querySelectorAll(".scrub-line, .scrub-handle").forEach((el) => {
+        el.classList.remove("is-dragging");
+      });
+
+      // Add dragging visual classes to current
+      const lineEl = group.querySelector(".scrub-line");
+      if (lineEl) lineEl.classList.add("is-dragging");
+      handle.classList.add("is-dragging");
+
+      // Instantly update selectedOffsetHours and nightArea mapping upon mousedown
+      const scrub = State.scrubs.find(s => s.id === activeDragScrubId);
+      if (scrub) {
+        const nowFraction = TimelineUtils.getNowFraction();
+        State.selectedOffsetHours = (scrub.fraction - nowFraction) * 24;
+      }
+      Renderer.renderNightArea(State.selectedOffsetHours);
+
       e.preventDefault();
     });
 
-    // Mousemove on document: update position while dragging
     document.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
+      if (!isDragging || !activeDragScrubId) return;
+
       const panelRect = DOM.timelinePanel.getBoundingClientRect();
       const pxLeft = e.clientX - panelRect.left;
-      State.scrubFraction = TimelineUtils.leftToFraction(pxLeft);
+      const fraction = TimelineUtils.leftToFraction(pxLeft);
 
-      const left = TimelineUtils.fractionToLeft(State.scrubFraction);
-      DOM.scrubLine.style.left = `${left}px`;
-      DOM.scrubHandle.style.left = `${left}px`;
-      if (DOM.scrubResetBtn) {
-        DOM.scrubResetBtn.style.left = `${left}px`;
-        DOM.scrubResetBtn.classList.add("is-visible");
+      // Update fraction in state
+      const scrub = State.scrubs.find(s => s.id === activeDragScrubId);
+      if (scrub) {
+        scrub.fraction = fraction;
       }
 
-      // Live-update night area overlay
+      // Update position of group element directly for performance
+      const group = DOM.timelinePanel.querySelector(`.scrub-line-group[data-id="${activeDragScrubId}"]`);
+      if (group) {
+        const left = TimelineUtils.fractionToLeft(fraction);
+        group.style.left = `${left}px`;
+      }
+
+      // Live-update map timeline and ref lines
       const nowFraction = TimelineUtils.getNowFraction();
-      State.selectedOffsetHours = (State.scrubFraction - nowFraction) * 24;
+      State.selectedOffsetHours = (fraction - nowFraction) * 24;
       Renderer.renderNightArea(State.selectedOffsetHours);
     });
 
-    // Mouseup: end drag
     document.addEventListener("mouseup", () => {
       if (!isDragging) return;
       isDragging = false;
-      DOM.scrubLine.classList.remove("is-dragging");
-      DOM.scrubHandle.classList.remove("is-dragging");
+      activeDragScrubId = null;
+    });
+
+    // --- Interaction 3: Click [x] to remove scrub-line (Event Delegation) ---
+    DOM.timelinePanel.addEventListener("click", (e) => {
+      const btn = e.target.closest(".scrub-reset-btn");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const group = btn.closest(".scrub-line-group");
+      if (!group) return;
+
+      const scrubId = group.dataset.id;
+
+      // Remove from State
+      State.scrubs = State.scrubs.filter(s => s.id !== scrubId);
+
+      // Re-assign activeScrubId if the removed one was active
+      if (State.activeScrubId === scrubId) {
+        if (State.scrubs.length > 0) {
+          State.activeScrubId = State.scrubs[State.scrubs.length - 1].id;
+        } else {
+          State.activeScrubId = null;
+        }
+      }
+
+      // Recalculate selectedOffsetHours
+      const activeFraction = State.getActiveScrubFraction();
+      if (activeFraction !== null) {
+        const nowFraction = TimelineUtils.getNowFraction();
+        State.selectedOffsetHours = (activeFraction - nowFraction) * 24;
+      } else {
+        State.selectedOffsetHours = 0;
+      }
+
+      // Redraw UI
+      Renderer.renderScrubLine();
+      Renderer.renderNightArea(State.selectedOffsetHours);
     });
   },
 
@@ -417,13 +502,18 @@ const AppController = {
       DOM.nowLineModeSelect.value = State.nowLineMode;
       DOM.nowLineModeSelect.addEventListener("change", (e) => {
         State.saveNowLineMode(e.target.value);
-        State.scrubFraction = null;   // reset scrub to new now position
+        State.scrubs = [];
+        State.activeScrubId = null;
+        State.selectedOffsetHours = 0;
         Renderer.render();
       });
     }
 
     DOM.resetButton.addEventListener("click", () => {
       State.selectedIds = [...CONFIG.defaultSelection].slice(0, State.cityLimit);
+      State.scrubs = [];
+      State.activeScrubId = null;
+      State.selectedOffsetHours = 0;
       State.saveSelection();
       Renderer.render();
     });
@@ -431,6 +521,9 @@ const AppController = {
     DOM.clearAllButton.addEventListener("click", () => {
       State.selectedIds = [];
       State.customCities = [];
+      State.scrubs = [];
+      State.activeScrubId = null;
+      State.selectedOffsetHours = 0;
       State.saveSelection();
       State.saveCustomCities();
       Renderer.render();
