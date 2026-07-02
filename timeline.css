@@ -181,26 +181,7 @@
   background: var(--scrub-hover-bg);
 }
 
-/* Left and right triangles on scrub handle */
-.scrub-handle::before,
-.scrub-handle::after {
-  content: "";
-  position: absolute;
-  top: 1px;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  pointer-events: none;
-}
 
-.scrub-handle::before {
-  left: -6px;
-  border-right: 7px solid var(--scrub-triangle-color);
-}
-
-.scrub-handle::after {
-  right: -6px;
-  border-left: 7px solid var(--scrub-triangle-color);
-}
 
 /* Reset Scrub Line button - small [x] at the top of the scrub line */
 .scrub-reset-btn {
