@@ -3,6 +3,7 @@
  */
 const DOM = {
   cityLayer: document.querySelector("#cityLayer"),
+  mapTimeLabelLayer: document.querySelector("#mapTimeLabelLayer"),
   timelineRows: document.querySelector("#timelineRows"),
   nowLine: document.querySelector("#nowLine"),
   scrubLinesContainer: document.querySelector("#scrubLinesContainer"),

@@ -18,6 +18,7 @@ const CONFIG = {
     mapYOffset: 30,
     showNightArea: true,
     showHourLines: true,
+    showCityTimes: true,
     mapCollapsed: false
   },
   defaultTimePeriods: [

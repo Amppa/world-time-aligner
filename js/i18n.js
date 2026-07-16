@@ -38,6 +38,7 @@ const i18nTranslations = {
     removeScrubLine: "移除此時間標記",
     showNightArea: "顯示夜間範圍",
     showHourLines: "顯示小時線",
+    showCityTimes: "顯示已選城市時間",
     cityLimitLabel: "城市數量上限："
   },
   en: {
@@ -79,6 +80,7 @@ const i18nTranslations = {
     removeScrubLine: "Remove this time marker",
     showNightArea: "Show Night Area",
     showHourLines: "Show Hour Lines",
+    showCityTimes: "Show Selected City Times",
     cityLimitLabel: "Max Cities: "
   }
 };

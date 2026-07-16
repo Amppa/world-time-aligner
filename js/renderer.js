@@ -52,18 +52,53 @@ const Renderer = {
       DOM.cityLayer.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
     }
     DOM.cityLayer.innerHTML = "";
+
+    if (DOM.mapTimeLabelLayer) {
+      DOM.mapTimeLabelLayer.style.transform = `translateY(${State.mapSettings.mapYOffset || 0}px)`;
+      DOM.mapTimeLabelLayer.innerHTML = "";
+    }
+
+    const activeFraction = State.getActiveScrubFraction();
+    const useFraction = activeFraction !== null ? activeFraction : TimelineUtils.getNowFraction();
+    let targetDate = null;
+    if (useFraction !== null && State.baseHours && State.baseHours[0]) {
+      targetDate = new Date(State.baseHours[0].getTime() + useFraction * 24 * 3600000);
+    }
+
     State.allCities().forEach((city) => {
       const position = MapUtils.mapPosition(city);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `city-pin${State.selectedIds.includes(city.id) ? " is-selected" : ""}`;
+      const isSelected = State.selectedIds.includes(city.id);
+      button.className = `city-pin${isSelected ? " is-selected" : ""}`;
       button.style.left = `${position.x}%`;
       button.style.top = `${position.y}%`;
+      button.dataset.id = city.id;
+      button.dataset.zone = city.zone;
+
       const cityName = I18nUtils.getCityName(city);
       button.title = cityName;
       button.setAttribute("aria-label", I18nUtils.getTranslation("selectCity", { name: cityName }));
       button.addEventListener("click", () => State.toggleCity(city.id));
       DOM.cityLayer.append(button);
+
+      if (isSelected && DOM.mapTimeLabelLayer) {
+        const label = document.createElement("div");
+        label.className = "map-time-label";
+        label.style.left = `${position.x}%`;
+        label.style.top = `${position.y}%`;
+        label.dataset.id = city.id;
+        label.dataset.zone = city.zone;
+
+        if (targetDate) {
+          label.textContent = TimeUtils.formatTime(targetDate, city.zone);
+          label.style.display = "";
+        } else {
+          label.style.display = "none";
+        }
+
+        DOM.mapTimeLabelLayer.append(label);
+      }
     });
   },
 
@@ -587,6 +622,34 @@ const Renderer = {
       const activePts = this._calcNightAreaBoundaryPoints(offsetHours);
       DOM.nightPathRef.setAttribute("d", `M ${activePts.join(" L ")}`);
     }
+
+    // Live update local times for selected cities on the map
+    const activeFraction = State.getActiveScrubFraction();
+    this.updateMapCityTimes(activeFraction);
+  },
+
+  updateMapCityTimes(activeFraction) {
+    if (!DOM.mapTimeLabelLayer) return;
+
+    const useFraction = activeFraction !== null ? activeFraction : TimelineUtils.getNowFraction();
+
+    if (useFraction === null || !State.baseHours || !State.baseHours[0]) {
+      DOM.mapTimeLabelLayer.querySelectorAll(".map-time-label").forEach((label) => {
+        label.style.display = "none";
+        label.textContent = "";
+      });
+      return;
+    }
+
+    const targetDate = new Date(State.baseHours[0].getTime() + useFraction * 24 * 3600000);
+
+    DOM.mapTimeLabelLayer.querySelectorAll(".map-time-label").forEach((label) => {
+      const zone = label.dataset.zone;
+      if (zone) {
+        label.textContent = TimeUtils.formatTime(targetDate, zone);
+        label.style.display = "";
+      }
+    });
   },
 
   applyVisibilitySettings() {
@@ -595,6 +658,9 @@ const Renderer = {
     }
     if (DOM.hourLines) {
       DOM.hourLines.style.display = State.mapSettings.showHourLines ? "" : "none";
+    }
+    if (DOM.mapTimeLabelLayer) {
+      DOM.mapTimeLabelLayer.style.display = State.mapSettings.showCityTimes ? "" : "none";
     }
   },
 

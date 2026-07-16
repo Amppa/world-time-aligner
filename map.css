@@ -168,6 +168,29 @@
   z-index: 2;
 }
 
+.map-time-label-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.map-time-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--selected-pin);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--selected-pin);
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
 .city-pin:hover {
   transform: scale(1.3);
 }

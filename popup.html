@@ -90,6 +90,10 @@
               <input type="checkbox" data-setting="showHourLines" checked>
               <span data-i18n="showHourLines">Show Hour Lines</span>
             </label>
+            <label class="checkbox-control">
+              <input type="checkbox" data-setting="showCityTimes" checked>
+              <span data-i18n="showCityTimes">Show Selected City Times</span>
+            </label>
           </div>
         </div>
       </details>
@@ -215,6 +219,7 @@
           </svg>
           <div id="timezoneHoverBar" class="timezone-hover-bar" hidden></div>
           <div id="cityLayer" class="city-layer" aria-label="City Pins"></div>
+          <div id="mapTimeLabelLayer" class="map-time-label-layer" aria-hidden="true"></div>
         </div>
         <div id="mapTimeline" class="map-timeline" aria-hidden="true"></div>
       </div>
