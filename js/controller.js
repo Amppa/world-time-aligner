@@ -243,77 +243,73 @@ const AppController = {
     let isDragging = false;
     let activeDragScrubId = null;
 
-    // --- Interaction 1: Click timeline grid to add new scrub-line ---
-    let mouseDownX = 0;
-    let mouseDownY = 0;
-
+    // --- Interaction 1 & 2: Click/Drag timeline to add or drag scrub-line ---
     DOM.timelinePanel.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return; // Left click only
-      // If clicked on a handle or remove button, don't trigger add
-      if (e.target.closest(".scrub-handle") || e.target.closest(".scrub-reset-btn")) return;
-      mouseDownX = e.clientX;
-      mouseDownY = e.clientY;
-    });
+      if (e.target.closest(".scrub-reset-btn")) return; // Let close button handler work
 
-    DOM.timelinePanel.addEventListener("mouseup", (e) => {
-      if (e.button !== 0) return;
-      if (e.target.closest(".scrub-handle") || e.target.closest(".scrub-reset-btn")) return;
-      // Ensure we clicked inside the hour cells grid to avoid misclicks on the city name labels
-      if (!e.target.closest(".hours")) return;
+      const handle = e.target.closest(".scrub-handle");
+      const hoursGrid = e.target.closest(".hours");
+      if (!handle && !hoursGrid) return;
 
-      const diffX = Math.abs(e.clientX - mouseDownX);
-      const diffY = Math.abs(e.clientY - mouseDownY);
-      // Small movement thresholds to distinguish single click from selection drag
-      if (diffX < 5 && diffY < 5) {
+      let targetScrubId = null;
+      let fraction = null;
+
+      if (handle) {
+        // Drag existing scrub line
+        const group = handle.closest(".scrub-line-group");
+        if (!group) return;
+        targetScrubId = group.dataset.id;
+
+        const scrub = State.scrubs.find(s => s.id === targetScrubId);
+        if (scrub) {
+          fraction = scrub.fraction;
+        }
+      } else {
+        // Press to create a new scrub-line and start dragging immediately
         const panelRect = DOM.timelinePanel.getBoundingClientRect();
         const pxLeft = e.clientX - panelRect.left;
-        const fraction = TimelineUtils.leftToFraction(pxLeft);
+        fraction = TimelineUtils.leftToFraction(pxLeft);
 
         const newScrub = {
           id: `scrub_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
           fraction: fraction
         };
         State.scrubs.push(newScrub);
-        State.activeScrubId = newScrub.id;
+        targetScrubId = newScrub.id;
 
-        // Render scrub line and redraw night area
+        // Render the newly created scrub line
+        State.activeScrubId = targetScrubId;
         Renderer.renderScrubLine();
-        Renderer.renderNightArea(State.selectedOffsetHours);
       }
-    });
 
-    // --- Interaction 2: Drag to reposition scrub-line (Event Delegation) ---
-    DOM.timelinePanel.addEventListener("mousedown", (e) => {
-      const handle = e.target.closest(".scrub-handle");
-      if (!handle) return;
-      if (e.button !== 0) return;
+      if (targetScrubId) {
+        activeDragScrubId = targetScrubId;
+        State.activeScrubId = targetScrubId;
+        isDragging = true;
 
-      const group = handle.closest(".scrub-line-group");
-      if (!group) return;
+        // Apply dragging visual styles
+        DOM.scrubLinesContainer.querySelectorAll(".scrub-line, .scrub-handle").forEach((el) => {
+          el.classList.remove("is-dragging");
+        });
 
-      activeDragScrubId = group.dataset.id;
-      State.activeScrubId = activeDragScrubId;
-      isDragging = true;
+        const group = DOM.timelinePanel.querySelector(`.scrub-line-group[data-id="${targetScrubId}"]`);
+        if (group) {
+          const lineEl = group.querySelector(".scrub-line");
+          const handleEl = group.querySelector(".scrub-handle");
+          if (lineEl) lineEl.classList.add("is-dragging");
+          if (handleEl) handleEl.classList.add("is-dragging");
+        }
 
-      // Clear is-dragging styling from all other scrub lines
-      DOM.scrubLinesContainer.querySelectorAll(".scrub-line, .scrub-handle").forEach((el) => {
-        el.classList.remove("is-dragging");
-      });
+        // Update selected offset hours & night area
+        if (fraction !== null) {
+          const nowFraction = TimelineUtils.getNowFraction();
+          State.selectedOffsetHours = (fraction - nowFraction) * 24;
+          Renderer.renderNightArea(State.selectedOffsetHours);
+        }
 
-      // Add dragging visual classes to current
-      const lineEl = group.querySelector(".scrub-line");
-      if (lineEl) lineEl.classList.add("is-dragging");
-      handle.classList.add("is-dragging");
-
-      // Instantly update selectedOffsetHours and nightArea mapping upon mousedown
-      const scrub = State.scrubs.find(s => s.id === activeDragScrubId);
-      if (scrub) {
-        const nowFraction = TimelineUtils.getNowFraction();
-        State.selectedOffsetHours = (scrub.fraction - nowFraction) * 24;
+        e.preventDefault();
       }
-      Renderer.renderNightArea(State.selectedOffsetHours);
-
-      e.preventDefault();
     });
 
     document.addEventListener("mousemove", (e) => {
