@@ -97,6 +97,19 @@
   cursor: crosshair;
 }
 
+.date-badge {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.85;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 /*
 .hour-cell.is-now::before {
   content: "";

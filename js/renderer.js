@@ -108,7 +108,7 @@ const Renderer = {
     return State.mapSettings[key].toFixed(1);
   },
 
-   renderSettingsControls() {
+  renderSettingsControls() {
     document.querySelectorAll("[data-setting]").forEach((input) => {
       const key = input.dataset.setting;
       if (input.type === "checkbox") {
@@ -172,6 +172,14 @@ const Renderer = {
         cell.dataset.index = String(index);
         cell.textContent = String(cityHour).padStart(2, "0");
         cell.title = `${cityName} ${TimeUtils.formatTime(cellDate, city.zone)}`;
+
+        if (cityHour === 0) {
+          const dateStr = TimeUtils.dateInZone(cellDate, city.zone);
+          const dateBadge = document.createElement("span");
+          dateBadge.className = "date-badge";
+          dateBadge.textContent = dateStr;
+          cell.appendChild(dateBadge);
+        }
 
         const styleInfo = PeriodUtils.getHourStyle(cityHour);
         cell.style.backgroundColor = styleInfo.color;

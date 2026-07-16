@@ -122,6 +122,20 @@ const TimeUtils = {
     }
   },
 
+  dateInZone(date, zone) {
+    try {
+      const resolved = this.resolveZone(zone);
+      const formatter = this.getFormatter("en-US", {
+        timeZone: resolved,
+        month: "numeric",
+        day: "numeric"
+      });
+      return formatter.format(date);
+    } catch {
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+  },
+
   utcOffsetText(date, zone) {
     try {
       const resolved = this.resolveZone(zone);
