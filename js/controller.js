@@ -267,6 +267,10 @@ const AppController = {
         }
       } else {
         // Press to create a new scrub-line and start dragging immediately
+        if (State.scrubs && State.scrubs.length >= 4) {
+          return;
+        }
+
         const panelRect = DOM.timelinePanel.getBoundingClientRect();
         const pxLeft = e.clientX - panelRect.left;
         fraction = TimelineUtils.leftToFraction(pxLeft);
