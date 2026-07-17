@@ -173,7 +173,8 @@ const Renderer = {
         cell.textContent = String(cityHour).padStart(2, "0");
         cell.title = `${cityName} ${TimeUtils.formatTime(cellDate, city.zone)}`;
 
-        if (cityHour === 0) {
+        // Show date badge at the transition of the day (00:00) OR at the very first cell (index 0)
+        if (cityHour === 0 || index === 0) {
           const dateStr = TimeUtils.dateInZone(cellDate, city.zone);
           const dateBadge = document.createElement("span");
           dateBadge.className = "date-badge";
