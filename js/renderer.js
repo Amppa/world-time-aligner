@@ -41,7 +41,7 @@ const Renderer = {
     const day = String(now.getDate()).padStart(2, "0");
     const dateStr = `${year}/${month}/${day}`;
     const timeStr = TimeUtils.formatTime(now, localZone);
-    DOM.nowText.innerHTML = `<span class="now-date">${dateStr}</span><span class="now-time">${timeStr}</span>`;
+    DOM.nowText.innerHTML = `<span class="now-time">${timeStr}</span><span class="now-date">${dateStr}</span><span class="now-brand">TimeMapper</span>`;
   },
 
   renderMap() {

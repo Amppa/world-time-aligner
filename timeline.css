@@ -1,7 +1,7 @@
 .timeline-panel {
   position: relative;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 8px;
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 8px;
